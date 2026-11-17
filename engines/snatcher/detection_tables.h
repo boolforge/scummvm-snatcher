@@ -59,7 +59,8 @@ const SnatcherGameDescription adGameDescs[] = {
 		{
 			"snatcher",
 			"Spanish",
-			AD_ENTRY1s(	"DATA_B0.BIN",	"63170d11da5ebc3a66ecf0fc2d23e78a", 24176),
+			AD_ENTRY2s(	"DATA_B0.BIN",	"63170d11da5ebc3a66ecf0fc2d23e78a", 24176,
+						"SP05.BIN",		"02092645cf7c55fffe0df3774cc48e86", 38513),
 			Common::ES_ESP,
 			Common::kPlatformSegaCD,
 			ADGF_TESTING,
@@ -81,12 +82,13 @@ const SnatcherGameDescription adGameDescs[] = {
 		},
 		SNATCHER_FLAGS(MDT_NONE, false, false, 0)
 	},
-	// PlayStation 1 - English Translation (pepasjc v1.0.1)
+	// PlayStation 1 - English Translation (pepasjc v1.5.1)
 	{
 		{
 			"snatcher",
-			"English",
-			AD_ENTRY1s(	"SYSTEM.CNF",	"efd75590e55971866f594474b99cedb8", 68),
+			"English v1.5.1",
+			AD_ENTRY2s(	"SLPS_001.54",	"2d107bba2062ad7eb6267cb553d5afa7", 561152,
+						"SYSTEM.CNF",	"efd75590e55971866f594474b99cedb8", 68),
 			Common::EN_ANY,
 			Common::kPlatformPSX,
 			ADGF_TESTING,
@@ -94,18 +96,33 @@ const SnatcherGameDescription adGameDescs[] = {
 		},
 		SNATCHER_FLAGS(MDT_NONE, false, false, Snatcher::GF_FAN_TRANSLATION)
 	},
-	// PlayStation 1 - Uncensored Restoration
+	// PlayStation 1 - Uncensored Restoration (pepasjc v1.5.1 Uncensored)
 	{
 		{
 			"snatcher",
-			"Uncensored",
-			AD_ENTRY1s(	"CXK_B061.BIN",	"b17172feaa2df595cce2eb5b9f71ee52", 11224),
-			Common::JA_JPN,
+			"Uncensored v1.5.1",
+			AD_ENTRY2s(	"SLPS_001.54",	"b9aac1c410bdc5c2d52263dcaffb7c45", 561152,
+						"SYSTEM.CNF",	"efd75590e55971866f594474b99cedb8", 68),
+			Common::EN_ANY,
 			Common::kPlatformPSX,
 			ADGF_TESTING,
 			GUIO1(GUIO_NOSPEECHVOLUME)
 		},
-		SNATCHER_FLAGS(MDT_NONE, false, false, Snatcher::GF_UNCENSORED | Snatcher::GF_RESTORED)
+		SNATCHER_FLAGS(MDT_NONE, false, false, Snatcher::GF_FAN_TRANSLATION | Snatcher::GF_UNCENSORED)
+	},
+	// PlayStation 1 - Spanish Translation (ElOtroLado / romhack)
+	{
+		{
+			"snatcher",
+			"Spanish",
+			AD_ENTRY2s(	"SLPS_001.54",	"412e3957e274939bb6436a600a2f7ad7", 495616,
+						"SYSTEM.CNF",	"efd75590e55971866f594474b99cedb8", 68),
+			Common::ES_ESP,
+			Common::kPlatformPSX,
+			ADGF_TESTING,
+			GUIO1(GUIO_NOSPEECHVOLUME)
+		},
+		SNATCHER_FLAGS(MDT_NONE, false, false, Snatcher::GF_FAN_TRANSLATION)
 	},
 	// Sega Saturn - Japan (T-9507G)
 	{
@@ -173,6 +190,19 @@ const SnatcherGameDescription adGameDescs[] = {
 			GUIO1(GUIO_NOSPEECHVOLUME)
 		},
 		SNATCHER_FLAGS(MDT_NONE, false, false, 0)
+	},
+	// MSX2 - English Translation (Fudeba / Daniel Caetano)
+	{
+		{
+			"snatcher",
+			"English",
+			AD_ENTRY1s(	"SNATCHER_EN.DSK",	"d340f56c5376b3d209b80b351e509bcf", 8192000),
+			Common::EN_ANY,
+			Common::kPlatformUnknown,
+			ADGF_TESTING,
+			GUIO1(GUIO_NOSPEECHVOLUME)
+		},
+		SNATCHER_FLAGS(MDT_NONE, false, false, Snatcher::GF_FAN_TRANSLATION)
 	},
 	// MSX2 - KYBT2 floppy
 	{
