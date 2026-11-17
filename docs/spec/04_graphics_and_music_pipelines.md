@@ -29,3 +29,51 @@ Deterministic technical reference for graphics packing, palette management, and 
 
 ### 2.2. Lip-Sync & Voice Triggering
 Opcodes `o_chatWithPortraitAnim` and `o_pcmSound` synchronously drive portrait mouth/eye sprite cycles while checking voice channel playback status (`m_pcmWait`).
+
+---
+
+## 3. PlayStation 1 DES Container & VRAM Layout
+
+Decompressed PS1 `DES/*.BIN` graphics buffers (via `Decompressor::decompressPS1LZSS`) adhere to a fixed binary header layout indexing sprite elements and standard Sony PlayStation TIM structures:
+
+```c
+struct PS1_DES_ChunkHeader {
+    uint32_t offsetLayer1;     // Byte offset to background tile layer (e.g. 0x00006234)
+    uint32_t offsetLayer2;     // Byte offset to overlay tile layer (e.g. 0x00004310)
+    uint32_t offsetAnimTable;  // Byte offset to animation metadata (e.g. 0x00000210)
+    uint32_t flags;            // Layer display mode & CLUT bit depth (e.g. 0x00000008)
+};
+```
+
+Sub-elements within decompressed `DES` streams:
+- `+0x0000`: 32-bit offset table referencing graphics sub-chunks.
+- `+0x00C3`: Embedded Sony PlayStation TIM image file signatures (`0x10 0x00 0x00 0x00`).
+  - Standard TIM header: `Tag (0x10)`, `Version/Flags (4bpp=0x08, 8bpp=0x09, 16bpp=0x02)`, `CLUT Header (X, Y, W, H, Colors)`, `Pixel Data Block (X, Y, W, H)`.
+
+---
+
+## 4. Sega Saturn DATA.BIN & LZ3 Stream Format
+
+Sega Saturn `DATA.BIN` contains sequentially concatenated, sector-aligned LZ3-compressed graphic and scenario chunks.
+
+```c
+struct Saturn_LZ3_Header {
+    uint32_t uncompressedSize; // Big-endian 32-bit unpacked payload size
+    uint16_t numBitWords;      // Count of 32-bit control words (nw)
+    uint16_t numTokens;        // Count of 16-bit match tokens (nh)
+    // Followed immediately by:
+    // uint32_t bitstream[numBitWords];
+    // uint16_t tokens[numTokens];
+    // uint8_t  literals[];
+};
+```
+
+### Decompression State Machine
+- Read bits sequentially from `bitstream` (MSB to LSB):
+  - `0`: Emit literal byte from `literals`.
+  - `1`: Match reference.
+    - If next bit is `1`: Short match (`len = (bits(2) + 2)`, `dist = literal_byte + 1`).
+    - If next bit is `0`: Read 16-bit word `w` from `tokens`.
+      - If `w == 0`: End-of-stream terminator.
+      - If `(w & 0x0F) != 0`: `len = (w & 0x0F) + 2`, `dist = (w >> 4) + 1`.
+      - If `(w & 0x0F) == 0`: Long match (`len = next_literal_byte`, `dist = (w >> 4)`).
