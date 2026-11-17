@@ -487,8 +487,10 @@ ScriptEngine::ScriptEngine(CmdQueue *que, UI *ui, ActionSequenceHandler *aseq, M
 	_arrayData = new uint8[256]();
 	makeOpcodeTable(scd);
 	resetArrays();
-	_ui->setScriptVerbsArray(&_arrays[1]);
-	_ui->setScriptSentenceArray(&_arrays[2]);
+	if (_ui) {
+		_ui->setScriptVerbsArray(&_arrays[1]);
+		_ui->setScriptSentenceArray(&_arrays[2]);
+	}
 }
 
 ScriptEngine::~ScriptEngine() {
@@ -980,6 +982,9 @@ void ScriptEngine::makeOpcodeTable(ResourcePointer *scd) {
 		OP(waitFrames)
 	};
 #undef OP
+
+	if (!scd)
+		return;
 
 	const uint8 *in = scd->makePtr(MemMapping::MEM_RAWDATA_06)();
 

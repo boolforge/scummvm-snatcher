@@ -107,15 +107,19 @@ bool SnatcherEngine::initResource() {
 	if (!_fio)
 		return false;
 
-	uint32 size = 0;
-	uint8 *data = _fio->fileData(96, &size);
-	if (!data)
-		return false;
-	_scd = new ResourcePointer(data, size, 0, MemMapping::MEM_SUBCODE_LOCATION, true);
-	if (!_scd)
-		return false;
+	if (platform() == Common::kPlatformSegaCD) {
+		uint32 size = 0;
+		uint8 *data = _fio->fileData(96, &size);
+		if (!data)
+			return false;
+		_scd = new ResourcePointer(data, size, 0, MemMapping::MEM_SUBCODE_LOCATION, true);
+		if (!_scd)
+			return false;
 
-	_translator->loadFile(96, FanTranslationHandler::kSCD);
+		_translator->loadFile(96, FanTranslationHandler::kSCD);
+	} else {
+		_scd = nullptr;
+	}
 
 	return true;
 }
@@ -149,8 +153,8 @@ bool SnatcherEngine::initGfx(Common::Platform platform, bool use8BitColorMode) {
 
 	if (_gfx) {
 		initGraphics(_gfx->realScreenWidth(), _gfx->realScreenHeight(), &pxf);
-		assert(_scd);
-		_gfx->setTextFont(_scd->makePtr(MemMapping::MEM_RAWDATA_04)(), 816, _scd->makePtr(MemMapping::MEM_RAWDATA_05)(), 102);
+		if (_scd)
+			_gfx->setTextFont(_scd->makePtr(MemMapping::MEM_RAWDATA_04)(), 816, _scd->makePtr(MemMapping::MEM_RAWDATA_05)(), 102);
 		_gfx->createMouseCursor();
 		return true;
 	}
@@ -182,7 +186,9 @@ bool SnatcherEngine::initScriptEngine() {
 		return false;
 
 	assert(_translator);
-	assert(_scd);
+	if (platform() == Common::kPlatformSegaCD)
+		assert(_scd);
+
 	_ui = new UI(_gfx, _cmdQueue, _scd, _translator);
 	if (!_ui)
 		return false;
@@ -194,7 +200,7 @@ bool SnatcherEngine::initScriptEngine() {
 	_memHandler = new MemAccessHandler(this, _ui, _aseq, _saveMan);
 	assert(_memHandler);
 
-	_scriptEngine = new ScriptEngine(_cmdQueue, _ui, _aseq, _memHandler, _scd);
+	_scriptEngine = ScriptEngine::create(_game.platform, _cmdQueue, _ui, _aseq, _memHandler, _scd, _fio);
 	if (!_scriptEngine)
 		return false;
 

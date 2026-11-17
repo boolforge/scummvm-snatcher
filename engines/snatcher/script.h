@@ -27,6 +27,7 @@
 #include "common/array.h"
 #include "common/func.h"
 #include "common/ptr.h"
+#include "common/platform.h"
 
 
 namespace Common {
@@ -131,27 +132,32 @@ private:
 	uint8 *_data;
 };
 
+class FIO;
 class MemAccessHandler;
+
 class ScriptEngine {
 public:
 	ScriptEngine(CmdQueue *que, UI *ui, ActionSequenceHandler *aseq, MemAccessHandler *mem, ResourcePointer *scd);
-	~ScriptEngine();
+	virtual ~ScriptEngine();
 
-	void resetArrays();
-	void run(Script &script);
-	bool postProcess(Script &script);
-	void processInput();
+	virtual void resetArrays();
+	virtual void run(Script &script);
+	virtual bool postProcess(Script &script);
+	virtual void processInput();
 
-	void loadState(Common::SeekableReadStream *in, Script &script, SaveFlags flags);
-	void saveState(Common::SeekableWriteStream *out, Script &script, SaveFlags flags);
+	virtual void loadState(Common::SeekableReadStream *in, Script &script, SaveFlags flags);
+	virtual void saveState(Common::SeekableWriteStream *out, Script &script, SaveFlags flags);
 
-private:
+	static ScriptEngine *create(Common::Platform platform, CmdQueue *que, UI *ui, ActionSequenceHandler *aseq, MemAccessHandler *mem, ResourcePointer *scd, FIO *fio);
+
+protected:
 	CmdQueue *_que;
 	MemAccessHandler *_mem;
 	ActionSequenceHandler *_aseq;
 	UI *_ui;
 	Script *_script;
 
+private:
 	uint8 *_arrayData;
 	ScriptArray _arrays[6];
 	uint8 *_flagsTable;

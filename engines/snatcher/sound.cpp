@@ -21,6 +21,7 @@
 
 #include "snatcher/sound_device.h"
 #include "snatcher/sound.h"
+#include "snatcher/resource.h"
 #include "common/stream.h"
 
 namespace Snatcher {
@@ -202,8 +203,12 @@ SoundDevice *SoundDevice::create(FIO *fio, Common::Platform platform, int soundO
 		return createPCESoundDevice(fio);
 	case Common::kPlatformSaturn:
 		return createSaturnSoundDevice(fio);
+	case Common::kPlatformPC98:
+		return createPC88SoundDevice(fio);
 	default:
-		// Check sound options / retro flags for MSX2 and PC-88
+		// Check for MSX2 assets in FIO
+		if (fio && (fio->readStream("SNATCHER.IMG") || fio->readStream("Disk0/SNATCHER.IMG") || fio->readStream("SNATCHER.DSK") || fio->readStream("SNATCHER_EN.DSK")))
+			return createMSXSoundDevice(fio);
 		if (soundOptions & 0x10)
 			return createMSXSoundDevice(fio);
 		if (soundOptions & 0x20)

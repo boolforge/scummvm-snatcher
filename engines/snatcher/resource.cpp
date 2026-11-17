@@ -135,27 +135,6 @@ uint8 *FIO::fileData(int index, uint32 *fileSize) {
 	if (data)
 		return data;
 
-	// Native multiplatform fallback for unpacked / non-SegaCD releases
-	if (index == 96) {
-		// Provide complete memory map buffer for SUBCODE executive with valid font data
-		const uint32 kScdBufferSize = 0x20000;
-		uint8 *dummy = new uint8[kScdBufferSize];
-		memset(dummy, 0xFF, kScdBufferSize);
-		if (fileSize)
-			*fileSize = kScdBufferSize;
-		return dummy;
-	}
-
-	// For missing DATA_* files on unpacked PSX / PC88 / PCE / Saturn
-	if (index < 57) {
-		const uint32 kGfxBufferSize = 0x20000;
-		uint8 *dummy = new uint8[kGfxBufferSize];
-		memset(dummy, 0xFF, kGfxBufferSize);
-		if (fileSize)
-			*fileSize = kGfxBufferSize;
-		return dummy;
-	}
-
 	return nullptr;
 }
 
@@ -166,15 +145,8 @@ uint8 *FIO::fileData(const Common::Path &file, uint32 *fileSize) {
 	if (fileSize)
 		*fileSize = size;
 
-	if (!s) {
-		warning("%s(): Unable to open file %s - providing safe multiplatform fallback", __FUNCTION__, file.baseName().c_str());
-		const uint32 kFallbackSize = 0x20000;
-		if (fileSize)
-			*fileSize = kFallbackSize;
-		uint8 *dummy = new uint8[kFallbackSize];
-		memset(dummy, 0xFF, kFallbackSize);
-		return dummy;
-	}
+	if (!s)
+		return nullptr;
 
 	uint8 *data = new uint8[size];
 	s->read(data, size);

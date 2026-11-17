@@ -24,6 +24,7 @@ MODULE_OBJS := \
 	scene_sp.o \
 	scene_y16.o \
 	script.o \
+	script_platform.o \
 	snatcher.o \
 	sound.o \
 	sound_device_msx2.o \
@@ -35,6 +36,7 @@ MODULE_OBJS := \
 	staticres.o \
 	subcode_native.o \
 	text_linear.o \
+	text_platform.o \
 	text_scd.o \
 	transition_linear.o \
 	transition_scd.o \

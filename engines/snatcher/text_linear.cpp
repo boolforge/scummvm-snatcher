@@ -146,16 +146,5 @@ TextRenderer *createLinearTextRenderer(Animator *animator) {
 	return new TextRenderer_Linear(animator);
 }
 
-TextRenderer *TextRenderer::create(Common::Platform platform, Animator *animator) {
-	switch (platform) {
-	case Common::kPlatformSegaCD:
-		return createSegaTextRenderer(animator);
-	case Common::kPlatformPSX:
-	case Common::kPlatformSaturn:
-	case Common::kPlatformPCEngine:
-	default:
-		return createLinearTextRenderer(animator);
-	}
-}
-
 } // End of namespace Snatcher
+
