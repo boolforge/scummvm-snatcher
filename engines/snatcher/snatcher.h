@@ -50,6 +50,7 @@ struct Script;
 class SnatcherEngine : public Engine {
 friend class CmdQueue;
 friend class SaveLoadManager;
+friend class Scene_SP;
 public:
 	SnatcherEngine(OSystem *system, GameDescription &dsc);
 	~SnatcherEngine() override;

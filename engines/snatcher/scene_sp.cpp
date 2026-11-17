@@ -19,11 +19,14 @@
  *
  */
 
-#include "snatcher/scene_sp.h"
-#include "snatcher/snatcher.h"
+#include "snatcher/action.h"
 #include "snatcher/graphics.h"
-#include "snatcher/sound.h"
 #include "snatcher/mem_mapping.h"
+#include "snatcher/scene_sp.h"
+#include "snatcher/script.h"
+#include "snatcher/snatcher.h"
+#include "snatcher/sound.h"
+#include "snatcher/ui.h"
 #include "common/textconsole.h"
 
 namespace Snatcher {
@@ -54,16 +57,50 @@ void Scene_SP::operator()(GameState &state) {
 }
 
 void Scene_SP::stepScript(GameState &state) {
-	(void)state;
-	// Script interpreter stepping will dispatch opcodes from scene module
+	// If script execution is requested or command queue has finished
+	if (_vm->_cmdQueue && !_vm->_cmdQueue->enabled()) {
+		if (state.updateFlags & 0x40) {
+			if (_vm->_scriptEngine->postProcess(state.script)) {
+				for (int i = 5; i < 15; ++i)
+					_vm->_gfx->setAnimParameter(i, GraphicsEngine::kAnimParaEnable, 0);
+				_vm->_cmdQueue->writeUInt16(0x22);
+				_vm->_cmdQueue->writeUInt32(MemMapping::MEM_PALDATA_06);
+				_vm->_cmdQueue->start();
+				state.updateFlags |= 0xA0;
+			}
+			state.updateFlags &= ~0x40;
+		} else if (state.updateFlags & 0x20) {
+			_vm->_gfx->setVar(11, 0xFF);
+			if (!_vm->_ui->drawVerbs() || !_vm->_ui->verbsTabInputPrompt(_vm->input())) {
+				state.updateFlags |= 0x80;
+			} else {
+				_vm->_scriptEngine->processInput();
+				state.updateFlags &= ~0x20;
+			}
+		} else if (state.updateFlags == 0) {
+			_vm->_scriptEngine->run(state.script);
+			_vm->_cmdQueue->start();
+			state.updateFlags |= 0xC0;
+		}
+	}
 }
 
 void Scene_SP::updateActors(GameState &state) {
 	(void)state;
+	// Step ambient animation cycles and portrait lip sync
+	if (_vm->gfx()) {
+		_vm->gfx()->updateAnimations();
+	}
 }
 
 void Scene_SP::checkTriggers(GameState &state) {
-	(void)state;
+	// Handle gun shooting sequences when triggered by scene script
+	if (_vm->_aseq && (state.updateFlags & 0x10)) {
+		bool finished = _vm->_aseq->run(state.conf.useLightGun != 0);
+		if (finished) {
+			state.updateFlags &= ~0x10;
+		}
+	}
 }
 
 // Scene Handler Factory Implementations for SP00..SP38
