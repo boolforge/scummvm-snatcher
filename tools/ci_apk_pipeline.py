@@ -219,14 +219,14 @@ def run_port_tests():
 
     for port_id, port_name in ports:
         print(f"\n--- [PLAYTEST] Launching {port_name} (`{port_id}`) ---")
-        sh(f"am force-stop {PACKAGE_NAME}")
+        sh(f"/system/bin/am force-stop {PACKAGE_NAME}")
         time.sleep(0.5)
         sh("logcat -c")
 
-        start_cmd = f"am start -n {PACKAGE_NAME}/org.scummvm.scummvm.SplashActivity --es commandline '{port_id}'"
+        start_cmd = f"/system/bin/am start -n {PACKAGE_NAME}/org.scummvm.scummvm.SplashActivity -a android.intent.action.MAIN -d 'scummvm:{port_id}'"
         sh(start_cmd)
 
-        time.sleep(3.0)
+        time.sleep(4.0)
         # Dismiss initial IME / system gesture overlay
         sh("input keyevent 4")
         time.sleep(1.0)
@@ -238,7 +238,7 @@ def run_port_tests():
         # Capture logcat
         logs = sh("logcat -d | grep -i -E 'scummvm|snatcher' | tail -n 25")
 
-        sh(f"am force-stop {PACKAGE_NAME}")
+        sh(f"/system/bin/am force-stop {PACKAGE_NAME}")
 
         has_crash = "fatal" in logs.lower() or "sigsegv" in logs.lower() or "exception" in logs.lower()
         success = not has_crash and os.path.exists(img_out) and os.path.getsize(img_out) > 1000
