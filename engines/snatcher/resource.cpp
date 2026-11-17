@@ -26,6 +26,7 @@
 #include "snatcher/scene.h"
 
 #include "common/stream.h"
+#include "common/memstream.h"
 #include "common/system.h"
 
 namespace Snatcher {
