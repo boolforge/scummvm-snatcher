@@ -21,6 +21,8 @@
 
 #include "snatcher/sound_device.h"
 #include "snatcher/resource.h"
+#include "snatcher/util.h"
+#include "backends/audiocd/audiocd.h"
 #include "audio/mixer.h"
 #include "common/stream.h"
 #include "common/system.h"
@@ -66,12 +68,13 @@ private:
 	Audio::Mixer *_mixer;
 	int _curTrack;
 	uint32 _trackStartTime;
+	uint32 _pauseStartTime;
 	Audio::SoundHandle _cdaHandle;
 	Audio::SoundHandle _scspHandle;
 };
 
 SoundDeviceSaturn::SoundDeviceSaturn(FIO *fio) : SoundDevice(), _fio(fio), _mixer(nullptr),
-	_curTrack(-1), _trackStartTime(0) {
+	_curTrack(-1), _trackStartTime(0), _pauseStartTime(0) {
 }
 
 SoundDeviceSaturn::~SoundDeviceSaturn() {
@@ -84,34 +87,48 @@ bool SoundDeviceSaturn::init(Audio::Mixer *mixer) {
 }
 
 void SoundDeviceSaturn::cdaPlay(int track, uint32 bcdTime) {
+	if (track <= 0)
+		return;
+
+	uint32 frm = 0;
+	if (bcdTime != 0)
+		frm = Util::decodeBCDTimeStamp(bcdTime, Util::kBCD_MMSSFR) / (1000 / 75);
+
+	g_system->getAudioCDManager()->play(track - 1, 1, frm, 0);
 	_curTrack = track;
 	_trackStartTime = g_system->getMillis();
-	debug(2, "SoundDeviceSaturn::cdaPlay: Playing Saturn CD track %d", track);
+	_pauseStartTime = 0;
+	debug(2, "SoundDeviceSaturn::cdaPlay: Playing Saturn CD track %d (frame %u)", track, frm);
 }
 
 void SoundDeviceSaturn::cdaStop() {
+	g_system->getAudioCDManager()->stop();
 	if (_mixer) {
 		_mixer->stopHandle(_cdaHandle);
 		_mixer->stopHandle(_scspHandle);
 	}
 	_curTrack = -1;
 	_trackStartTime = 0;
+	_pauseStartTime = 0;
 }
 
 bool SoundDeviceSaturn::cdaIsPlaying() const {
+	if (g_system->getAudioCDManager()->isPlaying())
+		return true;
 	if (_mixer && _mixer->isSoundHandleActive(_cdaHandle))
 		return true;
-	return _curTrack != -1;
+	return false;
 }
 
 int SoundDeviceSaturn::cdaGetCurTrack() const {
-	return _curTrack;
+	return cdaIsPlaying() ? _curTrack : -1;
 }
 
 uint32 SoundDeviceSaturn::cdaGetTime() const {
-	if (_curTrack == -1)
-		return 0;
-	return g_system->getMillis() - _trackStartTime;
+	uint32 relTime = cdaIsPlaying() ? (g_system->getMillis() - _trackStartTime) : 0;
+	if (_pauseStartTime)
+		relTime -= (g_system->getMillis() - _pauseStartTime);
+	return Util::makeBCDTimeStamp(relTime, Util::kBCD_MMSSFR);
 }
 
 void SoundDeviceSaturn::fmSendCommand(int cmd, int arg) {
@@ -139,6 +156,25 @@ int16 SoundDeviceSaturn::pcmGetResourceId() const {
 }
 
 void SoundDeviceSaturn::pause(bool toggle) {
+	if (toggle) {
+		if (_pauseStartTime == 0) {
+			if (cdaIsPlaying()) {
+				_pauseStartTime = g_system->getMillis();
+				g_system->getAudioCDManager()->stop();
+			} else {
+				_curTrack = -1;
+				_pauseStartTime = 0;
+			}
+		}
+	} else {
+		if (_pauseStartTime != 0) {
+			if (_curTrack != -1)
+				g_system->getAudioCDManager()->play(_curTrack - 1, 1, (_pauseStartTime - _trackStartTime) / (1000 / 75), 0);
+			_trackStartTime += (g_system->getMillis() - _pauseStartTime);
+			_pauseStartTime = 0;
+		}
+	}
+
 	if (_mixer) {
 		_mixer->pauseHandle(_cdaHandle, toggle);
 		_mixer->pauseHandle(_scspHandle, toggle);

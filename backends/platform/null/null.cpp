@@ -19,6 +19,10 @@
  *
  */
 
+#if (defined(__unix__) || defined(__linux__) || defined(__ANDROID__)) && !defined(POSIX)
+#define POSIX
+#endif
+
 #include <time.h>
 #ifdef POSIX
 #include <sys/time.h>

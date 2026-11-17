@@ -32,12 +32,38 @@
 
 namespace Snatcher {
 
+static const char *const snatcherDirectoryGlobs[] = {
+	"Extracted-Files",
+	"extracted-files",
+	"ScummVM-Playable",
+	"scummvm-playable",
+	"Original-USA",
+	"original-usa",
+	"Original-Japan",
+	"original-japan",
+	"English-Translated",
+	"english-translated",
+	"Spanish-Translation",
+	"spanish-translation",
+	"DES",
+	"des",
+	"CXD",
+	"cxd",
+	"CC3",
+	"cc3",
+	"PLN",
+	"pln",
+	"DATA",
+	"data",
+	nullptr
+};
+
 class SnatcherMetaEngineDetection : public AdvancedMetaEngineDetection<SnatcherGameDescription> {
 public:
 	SnatcherMetaEngineDetection() : AdvancedMetaEngineDetection(adGameDescs, gameList) {
 		_md5Bytes = 1024 * 1024;
-		_maxScanDepth = 2;
-		_directoryGlobs = 0;
+		_maxScanDepth = 3;
+		_directoryGlobs = snatcherDirectoryGlobs;
 	}
 
 	const char *getName() const override {
