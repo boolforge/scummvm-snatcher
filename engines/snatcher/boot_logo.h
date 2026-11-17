@@ -30,6 +30,8 @@ class OSystem;
 
 namespace Snatcher {
 
+class FIO;
+
 // A BootLogo renders the pre-game splash of one specific port into a linear
 // framebuffer. It knows nothing about the Sega VDP, so it can be extended per
 // platform (e.g. by a video-backed implementation for the STR/AVI intros).
@@ -43,7 +45,7 @@ public:
 
 	// Returns nullptr for platforms whose boot logo is handled by their animator
 	// (Sega CD runs its native VDP sequence).
-	static BootLogo *create(Common::Platform platform);
+	static BootLogo *create(Common::Platform platform, FIO *fio);
 };
 
 } // End of namespace Snatcher

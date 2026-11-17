@@ -122,8 +122,8 @@ DetectedGames SnatcherMetaEngineDetection::detectGames(const Common::FSList &fsl
 			g.language = Common::EN_ANY;
 			g.platform = hasPsx ? Common::kPlatformPSX :
 			             hasPce ? Common::kPlatformPCEngine :
-			             hasSaturn ? Common::kPlatformUnknown :
-			             hasPc88 ? Common::kPlatformUnknown : Common::kPlatformUnknown;
+			             hasSaturn ? Common::kPlatformSaturn :
+			             hasPc88 ? Common::kPlatformPC98 : Common::kPlatformUnknown;
 			games.push_back(g);
 		}
 	}
@@ -180,6 +180,14 @@ Common::Error SnatcherMetaEngineDetection::identifyGame(DetectedGame &game, cons
 					}
 					if (name == "data.bin" || name == "main_l.bin") {
 						platform = Common::kPlatformSaturn;
+						break;
+					}
+					if (name.contains("snatcher.dsk") || name == "snatcher.com" || name == "snatcher.img") {
+						platform = Common::kPlatformUnknown;
+						break;
+					}
+					if (name.contains("d88") || name.contains("disk1") || name.contains("pc88")) {
+						platform = Common::kPlatformPC98;
 						break;
 					}
 					if (name == "sp00.bin" || name == "data_b0.bin") {

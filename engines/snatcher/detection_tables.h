@@ -238,7 +238,7 @@ const SnatcherGameDescription adGameDescs[] = {
 			"Japan",
 			AD_ENTRY1s(	"Snatcher (1988)(Konami)(Disk 1 of 5)(Program Disk).d88",	"bb64ffcef2b7c7e41c2eae92298549b0", 426240),
 			Common::JA_JPN,
-			Common::kPlatformUnknown,
+			Common::kPlatformPC98,
 			ADGF_TESTING,
 			GUIO1(GUIO_NOSPEECHVOLUME)
 		},

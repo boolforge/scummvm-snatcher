@@ -45,6 +45,14 @@ FIO::FIO(SnatcherEngine *vm) : _vm(vm), _loadingTimer(0) {
 		_files.addSubDirectoryMatching(gameDir, "SND", 0, 3);
 		_files.addSubDirectoryMatching(gameDir, "STR", 0, 3);
 		_files.addSubDirectoryMatching(gameDir, "scenes", 0, 3);
+		_files.addSubDirectoryMatching(gameDir, "Extracted-Files", 0, 4);
+		_files.addSubDirectoryMatching(gameDir, "Extracted-Assets", 0, 4);
+		_files.addSubDirectoryMatching(gameDir, "Disk0", 0, 3);
+		_files.addSubDirectoryMatching(gameDir, "Disk1-Program", 0, 3);
+		_files.addSubDirectoryMatching(gameDir, "adpcm", 0, 3);
+		_files.addSubDirectoryMatching(gameDir, "graphics", 0, 3);
+		_files.addSubDirectoryMatching(gameDir, "palettes", 0, 3);
+		_files.addSubDirectoryMatching(gameDir, "filesystem", 0, 3);
 	}
 	_files.add("global_search", &SearchMan, 0, false);
 }
@@ -130,7 +138,8 @@ uint8 *FIO::fileData(int index, uint32 *fileSize) {
 	if (index == 96) {
 		// Provide complete memory map buffer for SUBCODE executive with valid font data
 		const uint32 kScdBufferSize = 0x20000;
-		uint8 *dummy = new uint8[kScdBufferSize]();
+		uint8 *dummy = new uint8[kScdBufferSize];
+		memset(dummy, 0xFF, kScdBufferSize);
 		if (fileSize)
 			*fileSize = kScdBufferSize;
 		return dummy;
@@ -139,7 +148,8 @@ uint8 *FIO::fileData(int index, uint32 *fileSize) {
 	// For missing DATA_* files on unpacked PSX / PC88 / PCE / Saturn
 	if (index < 57) {
 		const uint32 kGfxBufferSize = 0x20000;
-		uint8 *dummy = new uint8[kGfxBufferSize]();
+		uint8 *dummy = new uint8[kGfxBufferSize];
+		memset(dummy, 0xFF, kGfxBufferSize);
 		if (fileSize)
 			*fileSize = kGfxBufferSize;
 		return dummy;
@@ -160,7 +170,8 @@ uint8 *FIO::fileData(const Common::Path &file, uint32 *fileSize) {
 		const uint32 kFallbackSize = 0x20000;
 		if (fileSize)
 			*fileSize = kFallbackSize;
-		uint8 *dummy = new uint8[kFallbackSize]();
+		uint8 *dummy = new uint8[kFallbackSize];
+		memset(dummy, 0xFF, kFallbackSize);
 		return dummy;
 	}
 

@@ -149,6 +149,11 @@ void CmdQueue::m_initAnimations(const uint16 *&data) {
 	}
 
 	if (dbgTimeout >= 100) {
+		if (_vm->platform() != Common::kPlatformSegaCD) {
+			warning("%s(): Missing animation data for non-SegaCD port, bypassing", __FUNCTION__);
+			_progress = -1;
+			return;
+		}
 		error("%s(): Error reading animation data", __FUNCTION__);
 		return;
 	}
@@ -238,6 +243,10 @@ void CmdQueue::m_animOps(const uint16 *&data) {
 }
 
 void CmdQueue::m_pcmWait(const uint16 *&data) {
+	if (_vm->platform() != Common::kPlatformSegaCD) {
+		_progress = -1;
+		return;
+	}
 	if (_progress == 0) {
 		_counter = 3600;
 		++_progress;

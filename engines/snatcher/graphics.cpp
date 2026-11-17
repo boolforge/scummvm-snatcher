@@ -34,8 +34,8 @@
 
 namespace Snatcher {
 
-GraphicsEngine::GraphicsEngine(const Graphics::PixelFormat *pxf, OSystem *system, Common::Platform platform, const VMInfo &vmstate, SoundEngine *snd, bool enableAspectRatioCorrection) :
-	_system(system), _state(vmstate), _animator(nullptr), _text(nullptr), _dataMode(0), _screen(nullptr), _bpp(pxf ? pxf->bytesPerPixel : 1), _verbAreaType(0), _animSaveLoadData(nullptr),
+GraphicsEngine::GraphicsEngine(const Graphics::PixelFormat *pxf, OSystem *system, Common::Platform platform, const VMInfo &vmstate, SoundEngine *snd, bool enableAspectRatioCorrection, FIO *fio) :
+	_system(system), _platform(platform), _state(vmstate), _animator(nullptr), _text(nullptr), _dataMode(0), _screen(nullptr), _bpp(pxf ? pxf->bytesPerPixel : 1), _verbAreaType(0), _animSaveLoadData(nullptr),
 		_animSaveLoadDataExt(), _trsNeedsUpdate(false) {
 	assert(system);
 	_palette = Palette::create(pxf, _system->getPaletteManager(), platform, _state);
@@ -47,7 +47,7 @@ GraphicsEngine::GraphicsEngine(const Graphics::PixelFormat *pxf, OSystem *system
 	_screen = new uint8[_animator->realScreenWidth() * _animator->realScreenHeight() * (pxf ? pxf->bytesPerPixel : 1)]();
 	assert(_screen);
 	_pxf = pxf ? *pxf : Graphics::PixelFormat::createFormatCLUT8();
-	_bootLogo = BootLogo::create(platform);
+	_bootLogo = BootLogo::create(platform, fio);
 	_animSaveLoadData = new uint8[64]();
 	assert(_animSaveLoadData);
 }
@@ -68,6 +68,8 @@ void GraphicsEngine::runScript(ResourcePointer res, int func) {
 	for (uint8 cmd = *sc++; cmd != 0xFF; cmd = *sc++) {
 		uint8 len = *sc++;
 		ResourcePointer next = sc + len;
+		if (cmd == 0 && len == 0)
+			break;
 
 		switch (cmd) {
 		case 0:
@@ -101,6 +103,10 @@ void GraphicsEngine::runScript(ResourcePointer res, int func) {
 			// (in particular, the dma transfer from word ram to vram). We can just copy the whole thing at once...
 			break;
 		default:
+			if (_platform != Common::kPlatformSegaCD) {
+				warning("%s(): Unknown opcode 0x%02x on non-SegaCD platform %d, skipping", __FUNCTION__, cmd, _platform);
+				break;
+			}
 			error("%s(): Unknown opcode 0x%02x", __FUNCTION__, cmd);
 		}
 

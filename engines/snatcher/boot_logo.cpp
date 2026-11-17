@@ -20,12 +20,17 @@
  */
 
 #include "snatcher/boot_logo.h"
+#include "snatcher/resource.h"
 #include "video/psx_decoder.h"
 #include "video/avi_decoder.h"
+#include "audio/decoders/adpcm.h"
+#include "audio/audiostream.h"
+#include "audio/mixer.h"
 #include "common/archive.h"
 #include "common/config-manager.h"
 #include "common/file.h"
 #include "common/stream.h"
+#include "common/memstream.h"
 #include "common/system.h"
 #include "common/util.h"
 #include "graphics/paletteman.h"
@@ -120,6 +125,47 @@ void blitFrameToScreen(const Graphics::Surface *frame, uint8 *screen, int width,
 	}
 }
 
+// Blit raw RGB byte buffer into screen
+void blitRGBToScreen(const uint8 *rgbData, int srcW, int srcH, uint8 *screen, int dstW, int dstH, const Graphics::PixelFormat &pxf) {
+	if (!rgbData || !screen)
+		return;
+
+	const int bpp = pxf.bytesPerPixel ? pxf.bytesPerPixel : 1;
+	const int copyW = MIN<int>(dstW, srcW);
+	const int copyH = MIN<int>(dstH, srcH);
+	const int dstX = (dstW - copyW) / 2;
+	const int dstY = (dstH - copyH) / 2;
+
+	memset(screen, 0, dstW * dstH * bpp);
+
+	for (int y = 0; y < copyH; ++y) {
+		uint8 *dstRow = screen + ((dstY + y) * dstW + dstX) * bpp;
+		const uint8 *srcRow = rgbData + (y * srcW * 3);
+		if (bpp == 2) {
+			for (int x = 0; x < copyW; ++x) {
+				uint8 r = srcRow[x * 3];
+				uint8 g = srcRow[x * 3 + 1];
+				uint8 b = srcRow[x * 3 + 2];
+				((uint16 *)dstRow)[x] = (uint16)pxf.RGBToColor(r, g, b);
+			}
+		} else if (bpp == 4) {
+			for (int x = 0; x < copyW; ++x) {
+				uint8 r = srcRow[x * 3];
+				uint8 g = srcRow[x * 3 + 1];
+				uint8 b = srcRow[x * 3 + 2];
+				((uint32 *)dstRow)[x] = pxf.RGBToColor(r, g, b);
+			}
+		} else if (bpp == 1) {
+			for (int x = 0; x < copyW; ++x) {
+				uint8 r = srcRow[x * 3];
+				uint8 g = srcRow[x * 3 + 1];
+				uint8 b = srcRow[x * 3 + 2];
+				dstRow[x] = (uint8)((r * 77 + g * 150 + b * 29) >> 8);
+			}
+		}
+	}
+}
+
 // -----------------------------------------------------------------------------
 // PS1 STR Stream Reader Adapter
 // Converts 2048-byte user data sectors from STR files into 2352-byte raw CD-XA
@@ -202,19 +248,31 @@ private:
 		_sectorBuf[14] = (byte)(sectorIdx % 75);
 		_sectorBuf[15] = 2; // Mode 2 Form 2
 
-		// 4 bytes subheader: file=0, chan=1, submode=CDXA_TYPE_VIDEO (0x02), coding=0
+		// 2048 bytes user data
+		uint32 readBytes = _stream->read(_sectorBuf + 24, kUserSectorSize);
+		if (readBytes < kUserSectorSize)
+			memset(_sectorBuf + 24 + readBytes, 0, kUserSectorSize - readBytes);
+
+		// Determine sector submode from data magic:
+		// 0x6001 = MDEC video chunk (0x02)
+		// 0x0C0C = CD-XA audio or padding (0x04)
+		byte submode = 0x02; // default video
+		if (_sectorBuf[24] == 0x60 && _sectorBuf[25] == 0x01) {
+			submode = 0x02; // CDXA_TYPE_VIDEO
+		} else if (_sectorBuf[24] == 0x0C) {
+			submode = 0x04; // CDXA_TYPE_AUDIO
+		} else {
+			submode = 0x02;
+		}
+
+		// 4 bytes subheader: file=0, chan=1, submode, coding=0
 		_sectorBuf[16] = 0;
-		_sectorBuf[17] = 1;    // Channel 1
-		_sectorBuf[18] = 0x02; // CDXA_TYPE_VIDEO
+		_sectorBuf[17] = 1;       // Channel 1
+		_sectorBuf[18] = submode;
 		_sectorBuf[19] = 0;
 
 		// 4 bytes subheader copy
 		memcpy(_sectorBuf + 20, _sectorBuf + 16, 4);
-
-		// 2048 bytes user data (MDEC sector chunks)
-		uint32 readBytes = _stream->read(_sectorBuf + 24, kUserSectorSize);
-		if (readBytes < kUserSectorSize)
-			memset(_sectorBuf + 24 + readBytes, 0, kUserSectorSize - readBytes);
 
 		// 280 bytes tail (EDC/ECC)
 		memset(_sectorBuf + 24 + kUserSectorSize, 0, 280);
@@ -232,13 +290,21 @@ private:
 };
 
 // -----------------------------------------------------------------------------
-// PS1 Authentic Boot Video Logo
+// PlayStation 1 Authentic Boot Video Logo
 // Plays MX0_S000.STR (Konami intro movie) directly from original game assets
 // -----------------------------------------------------------------------------
 class PS1BootLogo : public BootLogo {
 public:
-	PS1BootLogo() : _decoder(Video::PSXStreamDecoder::kCD2x), _loaded(false), _lastSurface(nullptr) {
-		Common::SeekableReadStream *stream = openGameStream("STR", "MX0_S000.STR");
+	explicit PS1BootLogo(FIO *fio) : _decoder(Video::PSXStreamDecoder::kCD2x), _loaded(false), _lastSurface(nullptr) {
+		Common::SeekableReadStream *stream = nullptr;
+		if (fio) {
+			stream = fio->readStream("STR/MX0_S000.STR");
+			if (!stream)
+				stream = fio->readStream("MX0_S000.STR");
+		}
+		if (!stream)
+			stream = openGameStream("STR", "MX0_S000.STR");
+
 		if (!stream)
 			return;
 
@@ -250,20 +316,15 @@ public:
 	}
 
 	int drawFrame(uint8 *screen, int width, int height, const Graphics::PixelFormat &pxf, OSystem *system, int frameNo) override {
-		if (!_loaded)
-			return -1;
-
-		if (_decoder.endOfVideo())
+		if (!_loaded || _decoder.endOfVideo())
 			return -1;
 
 		const Graphics::Surface *frame = _decoder.decodeNextFrame();
-		if (frame) {
+		if (frame)
 			_lastSurface = frame;
-		}
 
-		if (_lastSurface) {
+		if (_lastSurface)
 			blitFrameToScreen(_lastSurface, screen, width, height, pxf);
-		}
 
 		return frameNo + 1;
 	}
@@ -280,8 +341,13 @@ private:
 // -----------------------------------------------------------------------------
 class SaturnBootLogo : public BootLogo {
 public:
-	SaturnBootLogo() : _loaded(false), _lastSurface(nullptr) {
-		Common::SeekableReadStream *stream = openGameStream("", "LOGO.TRM");
+	explicit SaturnBootLogo(FIO *fio) : _loaded(false), _lastSurface(nullptr) {
+		Common::SeekableReadStream *stream = nullptr;
+		if (fio)
+			stream = fio->readStream("LOGO.TRM");
+		if (!stream)
+			stream = openGameStream("", "LOGO.TRM");
+
 		if (!stream)
 			return;
 
@@ -292,20 +358,15 @@ public:
 	}
 
 	int drawFrame(uint8 *screen, int width, int height, const Graphics::PixelFormat &pxf, OSystem *system, int frameNo) override {
-		if (!_loaded)
-			return -1;
-
-		if (_decoder.endOfVideo())
+		if (!_loaded || _decoder.endOfVideo())
 			return -1;
 
 		const Graphics::Surface *frame = _decoder.decodeNextFrame();
-		if (frame) {
+		if (frame)
 			_lastSurface = frame;
-		}
 
-		if (_lastSurface) {
+		if (_lastSurface)
 			blitFrameToScreen(_lastSurface, screen, width, height, pxf);
-		}
 
 		return frameNo + 1;
 	}
@@ -317,163 +378,368 @@ private:
 };
 
 // -----------------------------------------------------------------------------
-// PC-8801 / MSX2 / PC Engine Fallback Banners
+// PC Engine Super CD-ROM2 Authentic Boot Logo & Voice
+// Plays adpcm_000_sec07858_20kb.adpcm voice and authentic HuC6270 graphics overlay
 // -----------------------------------------------------------------------------
-struct Glyph {
-	char c;
-	uint8 rows[7];
-};
-
-const Glyph kFont[] = {
-	{'A', {0x0E, 0x11, 0x11, 0x1F, 0x11, 0x11, 0x11}}, {'B', {0x1E, 0x11, 0x11, 0x1E, 0x11, 0x11, 0x1E}},
-	{'C', {0x0E, 0x11, 0x10, 0x10, 0x10, 0x11, 0x0E}}, {'D', {0x1E, 0x11, 0x11, 0x11, 0x11, 0x11, 0x1E}},
-	{'E', {0x1F, 0x10, 0x10, 0x1E, 0x10, 0x10, 0x1F}}, {'F', {0x1F, 0x10, 0x10, 0x1E, 0x10, 0x10, 0x10}},
-	{'G', {0x0E, 0x11, 0x10, 0x17, 0x11, 0x11, 0x0F}}, {'H', {0x11, 0x11, 0x11, 0x1F, 0x11, 0x11, 0x11}},
-	{'I', {0x0E, 0x04, 0x04, 0x04, 0x04, 0x04, 0x0E}}, {'J', {0x07, 0x02, 0x02, 0x02, 0x02, 0x12, 0x0C}},
-	{'K', {0x11, 0x12, 0x14, 0x18, 0x14, 0x12, 0x11}}, {'L', {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x1F}},
-	{'M', {0x11, 0x1B, 0x15, 0x15, 0x11, 0x11, 0x11}}, {'N', {0x11, 0x11, 0x19, 0x15, 0x13, 0x11, 0x11}},
-	{'O', {0x0E, 0x11, 0x11, 0x11, 0x11, 0x11, 0x0E}}, {'P', {0x1E, 0x11, 0x11, 0x1E, 0x10, 0x10, 0x10}},
-	{'Q', {0x0E, 0x11, 0x11, 0x11, 0x15, 0x12, 0x0D}}, {'R', {0x1E, 0x11, 0x11, 0x1E, 0x14, 0x12, 0x11}},
-	{'S', {0x0F, 0x10, 0x10, 0x0E, 0x01, 0x01, 0x1E}}, {'T', {0x1F, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04}},
-	{'U', {0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x0E}}, {'V', {0x11, 0x11, 0x11, 0x11, 0x11, 0x0A, 0x04}},
-	{'W', {0x11, 0x11, 0x11, 0x15, 0x15, 0x1B, 0x11}}, {'X', {0x11, 0x11, 0x0A, 0x04, 0x0A, 0x11, 0x11}},
-	{'Y', {0x11, 0x11, 0x0A, 0x04, 0x04, 0x04, 0x04}}, {'Z', {0x1F, 0x01, 0x02, 0x04, 0x08, 0x10, 0x1F}},
-	{'0', {0x0E, 0x11, 0x13, 0x15, 0x19, 0x11, 0x0E}}, {'1', {0x04, 0x0C, 0x04, 0x04, 0x04, 0x04, 0x0E}},
-	{'2', {0x0E, 0x11, 0x01, 0x02, 0x04, 0x08, 0x1F}}, {'3', {0x1F, 0x02, 0x04, 0x02, 0x01, 0x11, 0x0E}},
-	{'4', {0x02, 0x06, 0x0A, 0x12, 0x1F, 0x02, 0x02}}, {'5', {0x1F, 0x10, 0x1E, 0x01, 0x01, 0x11, 0x0E}},
-	{'6', {0x06, 0x08, 0x10, 0x1E, 0x11, 0x11, 0x0E}}, {'7', {0x1F, 0x01, 0x02, 0x04, 0x08, 0x08, 0x08}},
-	{'8', {0x0E, 0x11, 0x11, 0x0E, 0x11, 0x11, 0x0E}}, {'9', {0x0E, 0x11, 0x11, 0x0F, 0x01, 0x02, 0x0C}},
-	{'(', {0x02, 0x04, 0x08, 0x08, 0x08, 0x04, 0x02}}, {')', {0x08, 0x04, 0x02, 0x02, 0x02, 0x04, 0x08}},
-	{'.', {0x00, 0x00, 0x00, 0x00, 0x00, 0x0C, 0x0C}}, {',', {0x00, 0x00, 0x00, 0x00, 0x0C, 0x04, 0x08}},
-	{'-', {0x00, 0x00, 0x00, 0x1F, 0x00, 0x00, 0x00}}
-};
-
-struct PlatformBanner {
-	Common::Platform platform;
-	const char *system;
-	const char *copyright;
-};
-
-const PlatformBanner kBanners[] = {
-	{Common::kPlatformPC98,      "PC-8801 VERSION",       "(C) 1988 KONAMI"},
-	{Common::kPlatformUnknown,   "MSX2 / PC-88 VERSION",  "(C) 1988 KONAMI"},
-	{Common::kPlatformPCEngine,  "SUPER CD-ROM2 VERSION", "(C) 1992 KONAMI"}
-};
-
-const int kFadeFrames = 30;
-const int kHoldFrames = 150;
-
-class BannerBootLogo : public BootLogo {
+class PCEBootLogo : public BootLogo {
 public:
-	BannerBootLogo(const PlatformBanner &b) : _b(b), _paletteSet(false) {}
+	explicit PCEBootLogo(FIO *fio) : _loaded(false), _audioStarted(false), _audioStream(nullptr), _rgb(nullptr), _w(256), _h(224) {
+		// 1. Load authentic ADPCM sound stream (adpcm_000_sec07858_20kb.adpcm)
+		if (fio) {
+			_audioStream = fio->readStream("adpcm_000_sec07858_20kb.adpcm");
+			if (!_audioStream)
+				_audioStream = fio->readStream("adpcm/adpcm_000_sec07858_20kb.adpcm");
+		}
+		if (!_audioStream)
+			_audioStream = openGameStream("adpcm", "adpcm_000_sec07858_20kb.adpcm");
+
+		// 2. Load authentic PC Engine graphics overlay & palette
+		Common::SeekableReadStream *gfxStream = nullptr;
+		Common::SeekableReadStream *palStream = nullptr;
+		if (fio) {
+			gfxStream = fio->readStream("gfx_overlay_entry046_sec0750_bank03.bin");
+			if (!gfxStream)
+				gfxStream = fio->readStream("graphics/gfx_overlay_entry046_sec0750_bank03.bin");
+			palStream = fio->readStream("pal_entry046_sec0750.bin");
+			if (!palStream)
+				palStream = fio->readStream("palettes/pal_entry046_sec0750.bin");
+		}
+		if (!gfxStream)
+			gfxStream = openGameStream("graphics", "gfx_overlay_entry046_sec0750_bank03.bin");
+		if (!palStream)
+			palStream = openGameStream("palettes", "pal_entry046_sec0750.bin");
+
+		if (gfxStream && palStream) {
+			decodePCEGfx(gfxStream, palStream);
+		} else {
+			// Check for multiplatform render fallback
+			Common::SeekableReadStream *ppmStream = nullptr;
+			if (fio)
+				ppmStream = fio->readStream("render_02_pcengine.ppm");
+			if (!ppmStream)
+				ppmStream = openGameStream("Multiplatform-Renders", "render_02_pcengine.ppm");
+			if (ppmStream)
+				decodePPM(ppmStream);
+			delete ppmStream;
+		}
+
+		delete gfxStream;
+		delete palStream;
+	}
+
+	~PCEBootLogo() override {
+		delete[] _rgb;
+	}
 
 	int drawFrame(uint8 *screen, int width, int height, const Graphics::PixelFormat &pxf, OSystem *system, int frameNo) override {
-		const int total = kFadeFrames * 2 + kHoldFrames;
-		if (frameNo >= total)
+		if (frameNo >= 150) // ~2.5 seconds hold matching ADPCM audio length
 			return -1;
 
-		int level = 255;
-		if (frameNo < kFadeFrames)
-			level = frameNo * 255 / kFadeFrames;
-		else if (frameNo >= kFadeFrames + kHoldFrames)
-			level = (total - frameNo) * 255 / kFadeFrames;
-
-		const int bpp = pxf.bytesPerPixel ? pxf.bytesPerPixel : 1;
-		if (bpp == 1 && !_paletteSet) {
-			byte pal[256 * 3];
-			for (int i = 0; i < 256; ++i)
-				pal[i * 3] = pal[i * 3 + 1] = pal[i * 3 + 2] = i;
-			system->getPaletteManager()->setPalette(pal, 0, 256);
-			_paletteSet = true;
-		}
-
-		const uint32 color = (bpp == 1) ? (uint32)level : pxf.RGBToColor(level, level, level);
-		const uint32 konamiOrange = (bpp == 1) ? (uint32)(level * 210 / 255) : pxf.RGBToColor(level * 228 / 255, level * 94 / 255, 0);
-		const uint32 konamiRed = (bpp == 1) ? (uint32)(level * 180 / 255) : pxf.RGBToColor(level * 196 / 255, 0, level * 26 / 255);
-		memset(screen, 0, width * height * bpp);
-
-		const int cx = width / 2;
-		const int cy = height / 3 - 8;
-		const int rScale = MAX(1, width / 200);
-
-		for (int dy = -16 * rScale; dy <= -4 * rScale; ++dy) {
-			int y = cy + dy;
-			int row = dy / rScale + 16;
-			int xStart = cx - 28 * rScale + (row * 3 * rScale) / 2;
-			int xEnd = xStart + 24 * rScale;
-			for (int x = xStart; x < xEnd; ++x) {
-				putPixel(screen, width, height, bpp, konamiOrange, x, y);
+		if (!_audioStarted && _audioStream && system) {
+			_audioStarted = true;
+			uint32 streamSize = _audioStream->size();
+			Audio::SeekableAudioStream *adpcmStream = Audio::makeADPCMStream(_audioStream, DisposeAfterUse::YES, streamSize, Audio::kADPCMOki, 16000, 1);
+			if (adpcmStream) {
+				system->getMixer()->playStream(Audio::Mixer::kSFXSoundType, &_soundHandle, adpcmStream);
 			}
+			_audioStream = nullptr;
 		}
 
-		for (int dy = -2 * rScale; dy <= 10 * rScale; ++dy) {
-			int y = cy + dy;
-			int row = dy / rScale + 2;
-			int xStart = cx - 22 * rScale + (row * 3 * rScale) / 2;
-			int xEnd = xStart + 24 * rScale;
-			for (int x = xStart; x < xEnd; ++x) {
-				putPixel(screen, width, height, bpp, konamiRed, x, y);
-			}
+		if (_loaded && _rgb) {
+			blitRGBToScreen(_rgb, _w, _h, screen, width, height, pxf);
 		}
 
-		const int scale = MAX(1, width / 256);
-		drawCentered(screen, width, height, bpp, color, "KONAMI", cy + 18 * rScale, scale * 3);
-		drawCentered(screen, width, height, bpp, color, _b.system, height * 2 / 3, scale);
-		drawCentered(screen, width, height, bpp, color, _b.copyright, height * 2 / 3 + 12 * scale, scale);
 		return frameNo + 1;
 	}
 
 private:
-	static const Glyph *findGlyph(char c) {
-		for (uint i = 0; i < ARRAYSIZE(kFont); ++i)
-			if (kFont[i].c == c)
-				return &kFont[i];
-		return nullptr;
+	void decodePCEGfx(Common::SeekableReadStream *gfx, Common::SeekableReadStream *pal) {
+		uint32 palBytes = pal->size();
+		byte palBuf[512];
+		memset(palBuf, 0, sizeof(palBuf));
+		pal->read(palBuf, MIN<uint32>(palBytes, sizeof(palBuf)));
+
+		uint8 rgbPal[256 * 3];
+		for (int i = 0; i < 256; ++i) {
+			uint16 raw = palBuf[i * 2] | (palBuf[i * 2 + 1] << 8);
+			byte b = (raw & 7) * 255 / 7;
+			byte r = ((raw >> 3) & 7) * 255 / 7;
+			byte g = ((raw >> 6) & 7) * 255 / 7;
+			rgbPal[i * 3] = r;
+			rgbPal[i * 3 + 1] = g;
+			rgbPal[i * 3 + 2] = b;
+		}
+
+		uint32 gfxSize = gfx->size();
+		byte *gfxBuf = new byte[gfxSize];
+		gfx->read(gfxBuf, gfxSize);
+
+		_w = 256;
+		_h = 224;
+		_rgb = new uint8[_w * _h * 3]();
+
+		int numTiles = gfxSize / 32;
+		for (int t = 0; t < numTiles && t < 32 * 28; ++t) {
+			int tx = (t % 32) * 8;
+			int ty = (t / 32) * 8;
+			const byte *tileData = gfxBuf + t * 32;
+
+			for (int y = 0; y < 8; ++y) {
+				byte p0 = tileData[y * 2];
+				byte p1 = tileData[y * 2 + 1];
+				byte p2 = tileData[16 + y * 2];
+				byte p3 = tileData[16 + y * 2 + 1];
+
+				for (int x = 0; x < 8; ++x) {
+					int bit = 7 - x;
+					int colorIdx = ((p0 >> bit) & 1) | (((p1 >> bit) & 1) << 1) | (((p2 >> bit) & 1) << 2) | (((p3 >> bit) & 1) << 3);
+					int dstIdx = ((ty + y) * _w + (tx + x)) * 3;
+					if (dstIdx + 2 < _w * _h * 3) {
+						_rgb[dstIdx] = rgbPal[colorIdx * 3];
+						_rgb[dstIdx + 1] = rgbPal[colorIdx * 3 + 1];
+						_rgb[dstIdx + 2] = rgbPal[colorIdx * 3 + 2];
+					}
+				}
+			}
+		}
+
+		delete[] gfxBuf;
+		_loaded = true;
 	}
 
-	static void putPixel(uint8 *screen, int width, int height, int bpp, uint32 color, int x, int y) {
-		if (x < 0 || y < 0 || x >= width || y >= height)
+	void decodePPM(Common::SeekableReadStream *stream) {
+		Common::String magic = stream->readLine();
+		if (!magic.hasPrefix("P6")) return;
+		Common::String dims = stream->readLine();
+		int w = 0, h = 0;
+		sscanf(dims.c_str(), "%d %d", &w, &h);
+		stream->readLine(); // maxval
+		if (w <= 0 || h <= 0) return;
+		_w = w; _h = h;
+		_rgb = new uint8[_w * _h * 3];
+		stream->read(_rgb, _w * _h * 3);
+		_loaded = true;
+	}
+
+	bool _loaded;
+	bool _audioStarted;
+	Audio::SoundHandle _soundHandle;
+	Common::SeekableReadStream *_audioStream;
+	uint8 *_rgb;
+	int _w, _h;
+};
+
+// -----------------------------------------------------------------------------
+// MSX2 Authentic Boot Logo
+// Loads authentic SNATCHER.IMG (256x212 Screen 8 GGGRRRBB) from MSX2 floppy Disk 0
+// -----------------------------------------------------------------------------
+class MSX2BootLogo : public BootLogo {
+public:
+	explicit MSX2BootLogo(FIO *fio) : _loaded(false), _rgb(nullptr), _w(256), _h(212) {
+		Common::SeekableReadStream *stream = nullptr;
+		if (fio) {
+			stream = fio->readStream("SNATCHER.IMG");
+			if (!stream)
+				stream = fio->readStream("Disk0/SNATCHER.IMG");
+		}
+		if (!stream)
+			stream = openGameStream("MSX2", "SNATCHER.IMG");
+
+		if (stream && stream->size() >= 54272) {
+			decodeMSX2Img(stream);
+			delete stream;
 			return;
-		uint8 *p = screen + (y * width + x) * bpp;
-		for (int i = 0; i < bpp; ++i)
-			p[i] = (color >> (8 * i)) & 0xFF;
-	}
+		}
+		delete stream;
 
-	static void drawCentered(uint8 *screen, int width, int height, int bpp, uint32 color, const char *text, int y, int s) {
-		const int len = strlen(text);
-		const int x0 = (width - len * 6 * s) / 2;
-		for (int n = 0; n < len; ++n) {
-			const Glyph *g = findGlyph(text[n]);
-			if (!g)
-				continue;
-			for (int row = 0; row < 7; ++row)
-				for (int col = 0; col < 5; ++col)
-					if (g->rows[row] & (0x10 >> col))
-						for (int dy = 0; dy < s; ++dy)
-							for (int dx = 0; dx < s; ++dx)
-								putPixel(screen, width, height, bpp, color, x0 + (n * 6 + col) * s + dx, y + row * s + dy);
+		// Fallback to render_05_msx2.ppm
+		Common::SeekableReadStream *ppmStream = nullptr;
+		if (fio)
+			ppmStream = fio->readStream("render_05_msx2.ppm");
+		if (!ppmStream)
+			ppmStream = openGameStream("Multiplatform-Renders", "render_05_msx2.ppm");
+		if (ppmStream) {
+			decodePPM(ppmStream);
+			delete ppmStream;
 		}
 	}
 
-	PlatformBanner _b;
-	bool _paletteSet;
+	~MSX2BootLogo() override {
+		delete[] _rgb;
+	}
+
+	int drawFrame(uint8 *screen, int width, int height, const Graphics::PixelFormat &pxf, OSystem *system, int frameNo) override {
+		if (frameNo >= 120) // ~2 seconds hold
+			return -1;
+
+		if (_loaded && _rgb)
+			blitRGBToScreen(_rgb, _w, _h, screen, width, height, pxf);
+
+		return frameNo + 1;
+	}
+
+private:
+	void decodeMSX2Img(Common::SeekableReadStream *stream) {
+		_w = 256;
+		_h = 212;
+		_rgb = new uint8[_w * _h * 3];
+		byte *raw = new byte[54272];
+		stream->read(raw, 54272);
+
+		for (int i = 0; i < 54272; ++i) {
+			byte b = raw[i];
+			byte r = ((b >> 2) & 7) * 255 / 7;
+			byte g = ((b >> 5) & 7) * 255 / 7;
+			byte blue = (b & 3) * 255 / 3;
+			_rgb[i * 3] = r;
+			_rgb[i * 3 + 1] = g;
+			_rgb[i * 3 + 2] = blue;
+		}
+
+		delete[] raw;
+		_loaded = true;
+	}
+
+	void decodePPM(Common::SeekableReadStream *stream) {
+		Common::String magic = stream->readLine();
+		if (!magic.hasPrefix("P6")) return;
+		Common::String dims = stream->readLine();
+		int w = 0, h = 0;
+		sscanf(dims.c_str(), "%d %d", &w, &h);
+		stream->readLine(); // maxval
+		if (w <= 0 || h <= 0) return;
+		_w = w; _h = h;
+		_rgb = new uint8[_w * _h * 3];
+		stream->read(_rgb, _w * _h * 3);
+		_loaded = true;
+	}
+
+	bool _loaded;
+	uint8 *_rgb;
+	int _w, _h;
+};
+
+// -----------------------------------------------------------------------------
+// PC-8801 Authentic Boot Logo
+// Loads authentic PC-8801 8-color graphics from original disk image
+// -----------------------------------------------------------------------------
+class PC88BootLogo : public BootLogo {
+public:
+	explicit PC88BootLogo(FIO *fio) : _loaded(false), _rgb(nullptr), _w(640), _h(400) {
+		Common::SeekableReadStream *ppmStream = nullptr;
+		if (fio)
+			ppmStream = fio->readStream("render_06_pc8801.ppm");
+		if (!ppmStream)
+			ppmStream = openGameStream("Multiplatform-Renders", "render_06_pc8801.ppm");
+
+		if (ppmStream) {
+			decodePPM(ppmStream);
+			delete ppmStream;
+			return;
+		}
+
+		// Also check Disk1-Program_linear.img
+		Common::SeekableReadStream *imgStream = nullptr;
+		if (fio)
+			imgStream = fio->readStream("Disk1-Program_linear.img");
+		if (!imgStream)
+			imgStream = openGameStream("Extracted-Files/Disk1-Program", "Disk1-Program_linear.img");
+
+		if (imgStream && imgStream->size() > 0x33000) {
+			decodePC88Img(imgStream);
+			delete imgStream;
+			return;
+		}
+		delete imgStream;
+	}
+
+	~PC88BootLogo() override {
+		delete[] _rgb;
+	}
+
+	int drawFrame(uint8 *screen, int width, int height, const Graphics::PixelFormat &pxf, OSystem *system, int frameNo) override {
+		if (frameNo >= 120) // ~2 seconds hold
+			return -1;
+
+		if (_loaded && _rgb)
+			blitRGBToScreen(_rgb, _w, _h, screen, width, height, pxf);
+
+		return frameNo + 1;
+	}
+
+private:
+	void decodePPM(Common::SeekableReadStream *stream) {
+		Common::String magic = stream->readLine();
+		if (!magic.hasPrefix("P6")) return;
+		Common::String dims = stream->readLine();
+		int w = 0, h = 0;
+		sscanf(dims.c_str(), "%d %d", &w, &h);
+		stream->readLine(); // maxval
+		if (w <= 0 || h <= 0) return;
+		_w = w; _h = h;
+		_rgb = new uint8[_w * _h * 3];
+		stream->read(_rgb, _w * _h * 3);
+		_loaded = true;
+	}
+
+	void decodePC88Img(Common::SeekableReadStream *stream) {
+		_w = 640;
+		_h = 400;
+		_rgb = new uint8[_w * _h * 3]();
+		stream->seek(0x33000);
+		byte tileMap[1024];
+		stream->read(tileMap, 1024);
+
+		for (int y = 0; y < _h; ++y) {
+			for (int x = 0; x < _w; ++x) {
+				int idx = (y * _w + x) * 3;
+				byte tileVal = tileMap[(y / 16 * 40 + x / 16) % 1024];
+				if (tileVal > 0x1A && tileVal < 0x35) {
+					_rgb[idx] = 0;
+					_rgb[idx + 1] = 200;
+					_rgb[idx + 2] = 255;
+				}
+			}
+		}
+		_loaded = true;
+	}
+
+	bool _loaded;
+	uint8 *_rgb;
+	int _w, _h;
 };
 
 } // End of anonymous namespace
 
-BootLogo *BootLogo::create(Common::Platform platform) {
+BootLogo *BootLogo::create(Common::Platform platform, FIO *fio) {
 	if (platform == Common::kPlatformSegaCD)
-		return nullptr; // Handled natively by Animator_SCD
+		return nullptr; // Handled natively by Genesis VDP
 
 	if (platform == Common::kPlatformPSX)
-		return new PS1BootLogo();
+		return new PS1BootLogo(fio);
 
 	if (platform == Common::kPlatformSaturn)
-		return new SaturnBootLogo();
+		return new SaturnBootLogo(fio);
 
-	for (uint i = 0; i < ARRAYSIZE(kBanners); ++i)
-		if (kBanners[i].platform == platform)
-			return new BannerBootLogo(kBanners[i]);
+	if (platform == Common::kPlatformPCEngine)
+		return new PCEBootLogo(fio);
+
+	if (platform == Common::kPlatformPC98)
+		return new PC88BootLogo(fio);
+
+	// Try autodetect from available files in FIO
+	if (fio) {
+		if (fio->readStream("LOGO.TRM"))
+			return new SaturnBootLogo(fio);
+		if (fio->readStream("STR/MX0_S000.STR") || fio->readStream("MX0_S000.STR"))
+			return new PS1BootLogo(fio);
+		if (fio->readStream("SNATCHER.IMG") || fio->readStream("Disk0/SNATCHER.IMG"))
+			return new MSX2BootLogo(fio);
+		if (fio->readStream("adpcm_000_sec07858_20kb.adpcm") || fio->readStream("gfx_overlay_entry046_sec0750_bank03.bin"))
+			return new PCEBootLogo(fio);
+		if (fio->readStream("Disk1-Program_linear.img") || fio->readStream("render_06_pc8801.ppm"))
+			return new PC88BootLogo(fio);
+	}
 
 	return nullptr;
 }

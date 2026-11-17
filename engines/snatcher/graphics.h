@@ -51,7 +51,7 @@ class TextRenderer;
 
 class GraphicsEngine {
 public:
-	GraphicsEngine(const Graphics::PixelFormat *pxf, OSystem *system, Common::Platform platform, const VMInfo &vmstate, SoundEngine *snd, bool enableAspectRatioCorrection);
+	GraphicsEngine(const Graphics::PixelFormat *pxf, OSystem *system, Common::Platform platform, const VMInfo &vmstate, SoundEngine *snd, bool enableAspectRatioCorrection, FIO *fio = nullptr);
 	~GraphicsEngine();
 
 	void runScript(ResourcePointer res, int func);
@@ -240,6 +240,7 @@ private:
 	TextRenderer *_text;
 	TransitionManager *_trs;
 	OSystem *_system;
+	Common::Platform _platform;
 };
 
 } // End of namespace Snatcher

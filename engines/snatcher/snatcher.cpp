@@ -145,7 +145,7 @@ bool SnatcherEngine::initGfx(Common::Platform platform, bool use8BitColorMode) {
 			error("%s(): No suitable color mode found", __FUNCTION__);
 	}
 
-	_gfx = new GraphicsEngine(&pxf, _system, platform, _gfxInfo, _snd, ConfMan.getBool("aspect_ratio"));
+	_gfx = new GraphicsEngine(&pxf, _system, platform, _gfxInfo, _snd, ConfMan.getBool("aspect_ratio"), _fio);
 
 	if (_gfx) {
 		initGraphics(_gfx->realScreenWidth(), _gfx->realScreenHeight(), &pxf);
@@ -203,8 +203,10 @@ bool SnatcherEngine::initScriptEngine() {
 
 void SnatcherEngine::reset() {
 	_gfx->reset(GraphicsEngine::kResetPalEvents | GraphicsEngine::kResetAnimations | GraphicsEngine::kResetCopyCmds | GraphicsEngine::kResetScrollState);
-	_snd->fmSendCommand(0xF1, 1);
-	_snd->pcmSendCommand(0xFF, -1);
+	if (platform() == Common::kPlatformSegaCD) {
+		_snd->fmSendCommand(0xF1, 1);
+		_snd->pcmSendCommand(0xFF, -1);
+	}
 	_snd->cdaStop();
 }
 
@@ -214,7 +216,8 @@ void SnatcherEngine::playBootLogoAnimation(const GameState &state) {
 
 	uint32 frameTimer = 0;
 	int curSeqState = 0;
-	_snd->fmSendCommand(0xF2, -1);
+	if (platform() == Common::kPlatformSegaCD)
+		_snd->fmSendCommand(0xF2, -1);
 
 	while (curSeqState != -1 && !shouldQuit()) {
 		frameTimer += _frameLen;
@@ -222,7 +225,7 @@ void SnatcherEngine::playBootLogoAnimation(const GameState &state) {
 		frameTimer &= 0x3FFF;
 
 		int nextState = _gfx->displayBootLogoFrame(curSeqState);
-		if (curSeqState == 6 && nextState == 7)
+		if (platform() == Common::kPlatformSegaCD && curSeqState == 6 && nextState == 7)
 			_snd->fmSendCommand(63, -1);
 		curSeqState = nextState;
 
