@@ -329,3 +329,31 @@ struct PSX_STR_SectorHeader {
 | `English-Translated/ScummVM-Playable/DATA_S1.BIN` | 24,780 | `00 02 80 08 00 02 89 3a` | `.......:` | `0d84ab4ed5b24f02...` |
 | `English-Translated/ScummVM-Playable/DATA_S2.BIN` | 108,728 | `00 02 80 08 00 02 a0 3a` | `.......:` | `256bfbab29d7cc43...` |
 | ... *(354 additional files indexed in tools/asset_catalog.json)* | | | | |
+
+---
+
+## 4. `dumper-companion.py` Integration & Ground-Truth Invariants
+
+### 4.1. Role of `dumper-companion.py` vs. ScummVM `engines/snatcher/`
+1. **Offline Extraction & Normalization:**
+   - Raw disc images (`.CUE` / `.BIN`, `.ISO`, `.CHD`) and floppy disks (`.D88`, `.DSK`) are unpacked beforehand by `dumper-companion.py`.
+   - `engines/snatcher/` does **not** mount raw disc images or sector containers at runtime. It consumes the canonical depacked asset trees output by `dumper-companion.py`.
+   - All 6 platforms (Sega CD, PC-8801, MSX2, PC Engine, PlayStation, Sega Saturn) share the canonical `ScummVM-Playable` root directory containing the unified 53 scenario modules (`DATA_A0.BIN` through `DATA_Y16.BIN`) alongside platform-specific audio/video subdirectories.
+
+### 4.2. Platform-Specific Extraction Contracts
+- **PlayStation (PSX):**
+  - Executable: `SLPS_001.54` / `SYSTEM.CNF`.
+  - Background & Tile Assets: `DES/` directory containing 497 LZSS-compressed `.BIN` containers (`01 00 00 00` magic, 4096-byte ring buffer).
+  - Video Movies: `STR/` directory containing MDEC demuxed 2048-byte user data sectors (`MX0_S000.STR` through `MX2_S000.STR`).
+  - Audio & Voice: `SND/XAS/` containing CD-XA audio streams (`XAS_M000.XA`, `XAS_S000.XA`).
+- **Sega Saturn:**
+  - Executive: `DATA.BIN` sequential archive.
+  - Video Assets: `LOGO.TRM`, `MX0.TRM`, `MX1.TRM` (TrueMotion 1 RIFF AVI streams).
+  - Audio Assets: `SND/` containing SCSP PCM and AIFF samples.
+- **Sega CD:**
+  - Executive: `SUBCODE.BIN` (Motorola 68000 Sub-CPU program and font tables).
+  - Audio & Voice: `PCMLD_01.BIN` (RF5C164 PCM voice archive) + Redbook CD-DA tracks.
+- **PC Engine:**
+  - Executive: Extracted tracks with OKI MSM5205 ADPCM voice clips (`.ADPCM`).
+- **MSX2 & PC-8801:**
+  - ScummVM-Playable linear scenario modules with PSG, SCC, and YM2203 audio bank mappings.
