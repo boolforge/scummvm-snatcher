@@ -86,7 +86,7 @@ public:
 		case Common::kPlatformSegaCD:
 			return createSCDAnimator(pxf, state, pal, scr, snd, enableAspectRatioCorrection);
 		default:
-			break;
+			return createSCDAnimator(pxf, state, pal, scr, snd, enableAspectRatioCorrection);
 		};
 		return 0;
 	}

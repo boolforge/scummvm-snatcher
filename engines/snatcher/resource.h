@@ -130,6 +130,8 @@ public:
 	Common::SeekableReadStream *readStream(int index);
 	Common::SeekableReadStream *readStream(const Common::Path &file);
 
+	Common::Path getFilePath(int index) const;
+
 private:
 	Common::SearchSet _files;
 	SnatcherEngine *_vm;

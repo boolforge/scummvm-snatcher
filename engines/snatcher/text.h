@@ -58,7 +58,7 @@ public:
 		case Common::kPlatformSegaCD:
 			return createSegaTextRenderer(animator);
 		default:
-			break;
+			return createSegaTextRenderer(animator);
 		};
 		return 0;
 	}

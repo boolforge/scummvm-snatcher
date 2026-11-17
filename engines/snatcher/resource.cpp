@@ -37,12 +37,55 @@ FIO::FIO(SnatcherEngine *vm) : _vm(vm), _loadingTimer(0) {
 FIO::~FIO() {
 }
 
+Common::Path FIO::getFilePath(int index) const {
+	if (index < 0 || index >= _resFileListSize)
+		return Common::Path();
+
+	Common::Path standardPath(_resFileList[index]);
+	if (_files.hasFile(standardPath))
+		return standardPath;
+
+	// PlayStation 1 scene mapping: SP00..SP38 -> ISZ_B000..ISZ_B260
+	if (index >= 57 && index <= 95) {
+		int sceneIdx = index - 57;
+		Common::String psxName = Common::String::format("ISZ_B%02X0.BIN", sceneIdx);
+		Common::Path p1(psxName);
+		if (_files.hasFile(p1))
+			return p1;
+		Common::Path p2(Common::String::format("PLN/ISZ/%s", psxName.c_str()));
+		if (_files.hasFile(p2))
+			return p2;
+	}
+
+	return standardPath;
+}
+
 SceneModule *FIO::loadModule(int index) {
-	return (index >= 0 && index < _resFileListSize) ? new SceneModule(_vm, this, _resFileList[index], index) : 0;
+	if (index < 0 || index >= _resFileListSize)
+		return nullptr;
+	Common::Path path = getFilePath(index);
+	return new SceneModule(_vm, this, path.toString().c_str(), index);
 }
 
 uint8 *FIO::fileData(int index, uint32 *fileSize) {
-	return (index >= 0 && index < _resFileListSize) ? fileData(_resFileList[index], fileSize) : nullptr;
+	if (index < 0 || index >= _resFileListSize)
+		return nullptr;
+
+	Common::Path path = getFilePath(index);
+	uint8 *data = fileData(path, fileSize);
+	if (data)
+		return data;
+
+	// Fallback for missing SUBCODE.BIN (e.g. PSX or Saturn)
+	if (index == 96) {
+		const uint32 kScdBufferSize = 0xCF76;
+		uint8 *dummy = new uint8[kScdBufferSize]();
+		if (fileSize)
+			*fileSize = kScdBufferSize;
+		return dummy;
+	}
+
+	return nullptr;
 }
 
 uint8 *FIO::fileData(const Common::Path &file, uint32 *fileSize) {
@@ -78,7 +121,10 @@ bool FIO::loadingCompleted() {
 }
 
 Common::SeekableReadStream *FIO::readStream(int index) {
-	return (index >= 0 && index < _resFileListSize) ? readStream(_resFileList[index]) : nullptr;
+	if (index < 0 || index >= _resFileListSize)
+		return nullptr;
+	Common::Path path = getFilePath(index);
+	return readStream(path);
 }
 
 Common::SeekableReadStream *FIO::readStream(const Common::Path &file) {

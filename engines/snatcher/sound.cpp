@@ -162,21 +162,44 @@ void SoundEngine::saveState(Common::SeekableWriteStream *out, SaveFlags flags) {
 		out->writeUint32BE(_dev->cdaGetTime());
 }
 
+class NullSoundDevice : public SoundDevice {
+public:
+	NullSoundDevice() : SoundDevice() {}
+	~NullSoundDevice() override {}
+
+	bool init(Audio::Mixer *mixer) override { return true; }
+
+	void cdaPlay(int track, uint32 bcdTime = 0) override {}
+	void cdaStop() override {}
+	bool cdaIsPlaying() const override { return false; }
+	int cdaGetCurTrack() const override { return -1; }
+	uint32 cdaGetTime() const override { return 0; }
+
+	void fmSendCommand(int cmd, int arg) override {}
+	uint8 fmGetStatus() const override { return 0; }
+
+	void pcmSendCommand(int cmd, int arg) override {}
+	void pcmInitSound(int sndId) override {}
+	uint8 pcmGetStatus() const override { return 0; }
+	int16 pcmGetResourceId() const override { return 0; }
+
+	void pause(bool toggle) override {}
+	void update() override {}
+
+	void reduceVolume2(bool enable) override {}
+
+	void setMusicVolume(int vol) override {}
+	void setSoundEffectVolume(int vol) override {}
+};
+
 SoundDevice *SoundDevice::create(FIO *fio, Common::Platform platform, int soundOptions) {
-	MidiDriver::DeviceHandle dev = MidiDriver::detectDevice(soundOptions);
-	MusicType musicType = MidiDriver::getMusicType(dev);
+	if (platform == Common::kPlatformSegaCD) {
+		SoundDevice *dev = createSegaSoundDevice(fio);
+		if (dev)
+			return dev;
+	}
 
-	if (musicType == MT_INVALID)
-		return nullptr;
-
-	switch (platform) {
-	case Common::kPlatformSegaCD:
-		return createSegaSoundDevice(fio);
-	default:
-		break;
-	};
-
-	return nullptr;
+	return new NullSoundDevice();
 }
 
 } // End of namespace Snatcher

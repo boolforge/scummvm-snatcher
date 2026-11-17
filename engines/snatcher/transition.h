@@ -87,7 +87,7 @@ public:
 		case Common::kPlatformSegaCD:
 			return createSegaTransitionManager(state);
 		default:
-			break;
+			return createSegaTransitionManager(state);
 		};
 		return 0;
 	}

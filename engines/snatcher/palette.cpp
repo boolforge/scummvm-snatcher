@@ -54,7 +54,7 @@ Palette *Palette::create(const Graphics::PixelFormat *pxf, PaletteManager *pm, C
 	case Common::kPlatformSegaCD:
 		return createSegaPalette(pxf, pm, state);
 	default:
-		break;
+		return createSegaPalette(pxf, pm, state);
 	};
 	return 0;
 }
