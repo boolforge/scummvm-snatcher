@@ -80,7 +80,7 @@ DetectedGames SnatcherMetaEngineDetection::detectGames(const Common::FSList &fsl
 			Common::String name = file.getName();
 			name.toLowercase();
 			if (name.contains("slps_") || name.contains("isz_") || name == "system.cnf") hasPsx = true;
-			if (name.startsWith("scene_") || name.contains("pce")) hasPce = true;
+			if (name.hasPrefix("scene_") || name.contains("pce")) hasPce = true;
 			if (name == "data.bin" || name == "main_l.bin") hasSaturn = true;
 			if (name.contains("d88") || name.contains("disk1") || name.contains("pc88")) hasPc88 = true;
 			if (name.contains("snatcher.dsk") || name == "snatcher.com") hasMsx = true;
