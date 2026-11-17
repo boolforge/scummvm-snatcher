@@ -121,12 +121,39 @@ const SnatcherGameDescription adGameDescs[] = {
 		},
 		SNATCHER_FLAGS(MDT_NONE, true, false, 0)
 	},
+	// Sega Saturn - English Translation
+	{
+		{
+			"snatcher",
+			"English",
+			AD_ENTRY2s(	"MAIN_L.BIN",	"fad37148d6ecd6a4b1fb6672f421041a", 259192,
+						"DATA.BIN",		"ff459bd721659f9d1f918f124c3193eb", 11008000),
+			Common::EN_ANY,
+			Common::kPlatformSaturn,
+			ADGF_TESTING,
+			GUIO1(GUIO_NOSPEECHVOLUME)
+		},
+		SNATCHER_FLAGS(MDT_NONE, true, false, Snatcher::GF_FAN_TRANSLATION)
+	},
+	// PC Engine Super CD-ROM - Japan (Redump)
+	{
+		{
+			"snatcher",
+			"Japan",
+			AD_ENTRY1s(	"Snatcher CD-ROMantic (Japan) (Track 02).bin",	"fd6e66d66ac3ee8b594b7474254ee29f", 80779440),
+			Common::JA_JPN,
+			Common::kPlatformPCEngine,
+			ADGF_TESTING,
+			GUIO1(GUIO_NOSPEECHVOLUME)
+		},
+		SNATCHER_FLAGS(MDT_NONE, false, false, 0)
+	},
 	// PC Engine Super CD-ROM - English Translation (NintendoComplete 2026)
 	{
 		{
 			"snatcher",
 			"English",
-			AD_ENTRY1s(	"snatcher-en.dat",	"01a42997b6e23ac4e24764d7d569888c", 269778395),
+			AD_ENTRY1s(	"Snatcher (English) (Track 02).bin",	"26a3770c487365caa207db08262a9f0c", 81779568),
 			Common::EN_ANY,
 			Common::kPlatformPCEngine,
 			ADGF_TESTING,
