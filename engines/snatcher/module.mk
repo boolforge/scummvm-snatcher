@@ -19,6 +19,7 @@ MODULE_OBJS := \
 	scene_d0.o \
 	scene_d1.o \
 	scene_d2.o \
+	scene_sp.o \
 	scene_y16.o \
 	script.o \
 	snatcher.o \

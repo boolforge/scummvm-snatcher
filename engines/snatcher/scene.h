@@ -41,4 +41,6 @@ declSHF(Y16);
 
 } // End of namespace Snatcher
 
+#include "snatcher/scene_sp.h"
+
 #endif // SNATCHER_SCENE_H
