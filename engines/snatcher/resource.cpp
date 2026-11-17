@@ -369,7 +369,12 @@ ResourcePointer SceneModule::getPtr(int offset) const {
 }
 
 ResourcePointer SceneModule::getGfxData() const {
-	return getPtr(READ_BE_UINT32(_data + 4));
+	if (!_data || _dataSize < 8)
+		return ResourcePointer();
+	uint32 offs = READ_BE_UINT32(_data + 4);
+	if (offs >= _dataSize)
+		offs = 0;
+	return getPtr(offs);
 }
 
 void SceneModule::run(GameState &state) {
