@@ -50,17 +50,4 @@ void Palette::unblock() {
 	}
 }
 
-Palette *Palette::create(const Graphics::PixelFormat *pxf, PaletteManager *pm, Common::Platform platform, GraphicsEngine::GfxState &state) {
-	switch (platform) {
-	case Common::kPlatformSegaCD:
-		return createSegaPalette(pxf, pm, state);
-	case Common::kPlatformPSX:
-	case Common::kPlatformSaturn:
-	case Common::kPlatformPCEngine:
-	default:
-		return createLinearPalette(pxf, pm, state);
-	};
-	return 0;
-}
-
 } // End of namespace Snatcher

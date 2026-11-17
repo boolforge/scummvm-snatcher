@@ -14,6 +14,7 @@ MODULE_OBJS := \
 	metaengine.o \
 	palette.o \
 	palette_linear.o \
+	palette_platform.o \
 	palette_scd.o \
 	resource.o \
 	saveload.o \
@@ -39,6 +40,7 @@ MODULE_OBJS := \
 	text_platform.o \
 	text_scd.o \
 	transition_linear.o \
+	transition_platform.o \
 	transition_scd.o \
 	ui.o \
 	util.o

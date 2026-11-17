@@ -105,16 +105,5 @@ TransitionManager *createLinearTransitionManager(GraphicsEngine::GfxState &state
 	return new LinearTransitionManager(state);
 }
 
-TransitionManager *TransitionManager::create(Common::Platform platform, GraphicsEngine::GfxState &state) {
-	switch (platform) {
-	case Common::kPlatformSegaCD:
-		return createSegaTransitionManager(state);
-	case Common::kPlatformPSX:
-	case Common::kPlatformSaturn:
-	case Common::kPlatformPCEngine:
-	default:
-		return createLinearTransitionManager(state);
-	}
-}
-
 } // End of namespace Snatcher
+
