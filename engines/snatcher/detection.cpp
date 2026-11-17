@@ -130,6 +130,13 @@ Common::Error SnatcherMetaEngineDetection::identifyGame(DetectedGame &game, cons
 	if (supportedFanLang && defaultLang != Common::UNK_LANG && selectedlang != Common::UNK_LANG)
 		ConfMan.set("language", Common::getLanguageCode(selectedlang));
 
+	if (err.getCode() != Common::kNoError || *descriptor == nullptr) {
+		// Universal Unpacked Direct Fallback
+		*descriptor = &adGameDescs[0];
+		game = DetectedGame(getName(), "snatcher", "Snatcher (Universal Direct Unpacked)", Common::EN_ANY, Common::kPlatformUnknown);
+		return Common::kNoError;
+	}
+
 	return err;
 }
 
