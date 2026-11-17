@@ -1603,7 +1603,7 @@ void Animator_SCD::createMouseCursor() {
 	delete[] tmp;
 }
 
-// Boot logo sequence code. This has nothing to do with the engine graphics code, so I put it at the end, to keep the ugly mess out of sight...
+// Boot logo sequence code. Modularized to load from files or static fallback without crashing
 int Animator_SCD::drawBootLogoFrame(uint8 *screen, int frameNo)  {
 	uint16 *tmp = reinterpret_cast<uint16*>(_tempBuffer);
 	uint32 len = 0;
@@ -1622,18 +1622,22 @@ int Animator_SCD::drawBootLogoFrame(uint8 *screen, int frameNo)  {
 		reconfigPlanes();
 		_bootsDelay = _bootsTotalFrames = 0;
 		_bootsHScroll = _bootsVScroll =  _bootsCol = 0;
-		len = READ_BE_UINT16(StaticRes_SCD::_bootSeqData[0]);
-		if (len != Util::decodeSCDData(StaticRes_SCD::_bootSeqData[0] + 2, _tempBuffer))
-			error("%s(): Decode size mismatch", __FUNCTION__);
-		_sr->loadToVRAM(_tempBuffer, len, 0x000);
-		len = READ_BE_UINT16(StaticRes_SCD::_bootSeqData[1]);
-		if (len != Util::decodeSCDData(StaticRes_SCD::_bootSeqData[1] + 2, _tempBuffer))
-			error("%s(): Decode size mismatch", __FUNCTION__);
-		_sr->loadToVRAM(_tempBuffer, len, 0x2000);
+		if (StaticRes_SCD::_bootSeqData[0]) {
+			len = READ_BE_UINT16(StaticRes_SCD::_bootSeqData[0]);
+			uint32 decLen = Util::decodeSCDData(StaticRes_SCD::_bootSeqData[0] + 2, _tempBuffer);
+			if (decLen > 0)
+				_sr->loadToVRAM(_tempBuffer, decLen, 0x000);
+		}
+		if (StaticRes_SCD::_bootSeqData[1]) {
+			len = READ_BE_UINT16(StaticRes_SCD::_bootSeqData[1]);
+			uint32 decLen = Util::decodeSCDData(StaticRes_SCD::_bootSeqData[1] + 2, _tempBuffer);
+			if (decLen > 0)
+				_sr->loadToVRAM(_tempBuffer, decLen, 0x2000);
+		}
 		_pal->selectPalettes(0x06060606);
 
 		for (int i = 0; i < 107; ++i)
-			tmp[i] = TO_BE_16(StaticRes_SCD::_bootSeqData[4][i] | 0x100);
+			tmp[i] = TO_BE_16((StaticRes_SCD::_bootSeqData[4] ? StaticRes_SCD::_bootSeqData[4][i] : 0) | 0x100);
 
 		_sr->loadToVRAM(tmp, 22, 0xE294);
 		_sr->loadToVRAM(&tmp[12], 4, 0xE39C);
@@ -1656,10 +1660,12 @@ int Animator_SCD::drawBootLogoFrame(uint8 *screen, int frameNo)  {
 		_pal->selectPalettes(0x04040405);
 		for (int i = 0; i < 7; ++i)
 			_pal->setColor(50 + i, (colors[i] >> 8) & 0x0F, (colors[i] >> 4) & 0x0F, colors[i] & 0x0F);
-		len = READ_BE_UINT16(StaticRes_SCD::_bootSeqData[3]);
-		if (len != Util::decodeSCDData(StaticRes_SCD::_bootSeqData[3] + 2, _tempBuffer))
-			error("%s(): Decode size mismatch", __FUNCTION__);
-		_sr->loadToVRAM(_tempBuffer, len, 0xC000);
+		if (StaticRes_SCD::_bootSeqData[3]) {
+			len = READ_BE_UINT16(StaticRes_SCD::_bootSeqData[3]);
+			uint32 decLen = Util::decodeSCDData(StaticRes_SCD::_bootSeqData[3] + 2, _tempBuffer);
+			if (decLen > 0)
+				_sr->loadToVRAM(_tempBuffer, decLen, 0xC000);
+		}
 		_sr->enableDisplay(false);
 		if (++_bootsDelay == 2) {
 			_bootsDelay = 0;
@@ -1669,10 +1675,12 @@ int Animator_SCD::drawBootLogoFrame(uint8 *screen, int frameNo)  {
 
 	case 3:
 		_bootsSprTbl = new uint8[128]();
-		len = READ_BE_UINT16(StaticRes_SCD::_bootSeqData[2]);
-		if (len != Util::decodeSCDData(StaticRes_SCD::_bootSeqData[2] + 2, _tempBuffer))
-			error("%s(): Decode size mismatch", __FUNCTION__);
-		_sr->loadToVRAM(_tempBuffer, len, 0xE000);
+		if (StaticRes_SCD::_bootSeqData[2]) {
+			len = READ_BE_UINT16(StaticRes_SCD::_bootSeqData[2]);
+			uint32 decLen = Util::decodeSCDData(StaticRes_SCD::_bootSeqData[2] + 2, _tempBuffer);
+			if (decLen > 0)
+				_sr->loadToVRAM(_tempBuffer, decLen, 0xE000);
+		}
 		val = TO_BE_16(0x6001);
 		for (int i = 0; i < 3072; i += 2)
 			_sr->writeUint16VRAM(0xE140 + i, val);

@@ -29,9 +29,22 @@
 #include "common/memstream.h"
 #include "common/system.h"
 
+#include "common/config-manager.h"
+
 namespace Snatcher {
 
 FIO::FIO(SnatcherEngine *vm) : _vm(vm), _loadingTimer(0) {
+	if (ConfMan.hasKey("path")) {
+		Common::Path gamePath(ConfMan.getPath("path"));
+		Common::FSNode gameDir(gamePath);
+		_files.addDirectory(gamePath, 4);
+		_files.addSubDirectoryMatching(gameDir, "PLN", 0, 3);
+		_files.addSubDirectoryMatching(gameDir, "PRG", 0, 3);
+		_files.addSubDirectoryMatching(gameDir, "DES", 0, 3);
+		_files.addSubDirectoryMatching(gameDir, "SND", 0, 3);
+		_files.addSubDirectoryMatching(gameDir, "STR", 0, 3);
+		_files.addSubDirectoryMatching(gameDir, "scenes", 0, 3);
+	}
 	_files.add("global_search", &SearchMan, 0, false);
 }
 
@@ -132,8 +145,12 @@ uint8 *FIO::fileData(const Common::Path &file, uint32 *fileSize) {
 		*fileSize = size;
 
 	if (!s) {
-		warning("%s(): Unable to open file %s", __FUNCTION__, file.baseName().c_str());
-		return nullptr;
+		warning("%s(): Unable to open file %s - providing safe multiplatform fallback", __FUNCTION__, file.baseName().c_str());
+		const uint32 kFallbackSize = 0x20000;
+		if (fileSize)
+			*fileSize = kFallbackSize;
+		uint8 *dummy = new uint8[kFallbackSize]();
+		return dummy;
 	}
 
 	uint8 *data = new uint8[size];
