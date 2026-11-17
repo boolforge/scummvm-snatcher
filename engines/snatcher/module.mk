@@ -30,6 +30,7 @@ MODULE_OBJS := \
 	sound_device_scd.o \
 	staticres.o \
 	subcode_native.o \
+	text_linear.o \
 	text_scd.o \
 	transition_scd.o \
 	ui.o \

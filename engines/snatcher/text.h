@@ -53,15 +53,7 @@ private:
 	static TextRenderer *createSegaTextRenderer(Animator *animator);
 
 public:
-	static TextRenderer *create(Common::Platform platform, Animator *animator) {
-		switch (platform) {
-		case Common::kPlatformSegaCD:
-			return createSegaTextRenderer(animator);
-		default:
-			return createSegaTextRenderer(animator);
-		};
-		return 0;
-	}
+	static TextRenderer *create(Common::Platform platform, Animator *animator);
 };
 
 } // End of namespace Snatcher
