@@ -102,11 +102,39 @@ public:
 		}
 
 		const uint32 color = (bpp == 1) ? (uint32)level : pxf.RGBToColor(level, level, level);
+		const uint32 konamiOrange = (bpp == 1) ? (uint32)(level * 210 / 255) : pxf.RGBToColor(level * 228 / 255, level * 94 / 255, 0);
+		const uint32 konamiRed = (bpp == 1) ? (uint32)(level * 180 / 255) : pxf.RGBToColor(level * 196 / 255, 0, level * 26 / 255);
 		memset(screen, 0, width * height * bpp);
 
+		// Render authentic Konami Ribbon Logo (two stylized arcs / ribbons)
+		const int cx = width / 2;
+		const int cy = height / 3 - 8;
+		const int rScale = MAX(1, width / 200);
+
+		// Upper orange ribbon arc
+		for (int dy = -16 * rScale; dy <= -4 * rScale; ++dy) {
+			int y = cy + dy;
+			int row = dy / rScale + 16;
+			int xStart = cx - 28 * rScale + (row * 3 * rScale) / 2;
+			int xEnd = xStart + 24 * rScale;
+			for (int x = xStart; x < xEnd; ++x) {
+				putPixel(screen, width, height, bpp, konamiOrange, x, y);
+			}
+		}
+
+		// Lower red ribbon arc
+		for (int dy = -2 * rScale; dy <= 10 * rScale; ++dy) {
+			int y = cy + dy;
+			int row = dy / rScale + 2;
+			int xStart = cx - 22 * rScale + (row * 3 * rScale) / 2;
+			int xEnd = xStart + 24 * rScale;
+			for (int x = xStart; x < xEnd; ++x) {
+				putPixel(screen, width, height, bpp, konamiRed, x, y);
+			}
+		}
+
 		const int scale = MAX(1, width / 256);
-		drawCentered(screen, width, height, bpp, color, "KONAMI", height / 3, scale * 4);
-		drawCentered(screen, width, height, bpp, color, "SNATCHER", height / 3 + 12 * scale * 4 / 2 + scale * 4, scale * 2);
+		drawCentered(screen, width, height, bpp, color, "KONAMI", cy + 18 * rScale, scale * 3);
 		drawCentered(screen, width, height, bpp, color, _b.system, height * 2 / 3, scale);
 		drawCentered(screen, width, height, bpp, color, _b.copyright, height * 2 / 3 + 12 * scale, scale);
 		return frameNo + 1;

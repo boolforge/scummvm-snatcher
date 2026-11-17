@@ -94,7 +94,7 @@ void LinearPalette::updateSystemPalette() {
 		return;
 	}
 
-	if (_palMan) {
+	if (_palMan && _pixelFormat.bytesPerPixel == 1) {
 		_palMan->setPalette(_paletteData, 0, 256);
 	}
 }
