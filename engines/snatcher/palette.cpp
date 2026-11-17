@@ -21,6 +21,7 @@
 
 
 #include "snatcher/palette.h"
+#include "snatcher/palette_linear.h"
 #include "graphics/paletteman.h"
 
 namespace Snatcher {
@@ -53,8 +54,11 @@ Palette *Palette::create(const Graphics::PixelFormat *pxf, PaletteManager *pm, C
 	switch (platform) {
 	case Common::kPlatformSegaCD:
 		return createSegaPalette(pxf, pm, state);
+	case Common::kPlatformPSX:
+	case Common::kPlatformSaturn:
+	case Common::kPlatformPCEngine:
 	default:
-		return createSegaPalette(pxf, pm, state);
+		return createLinearPalette(pxf, pm, state);
 	};
 	return 0;
 }

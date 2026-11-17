@@ -66,8 +66,8 @@ struct PlatformBanner {
 };
 
 const PlatformBanner kBanners[] = {
-	{Common::kPlatformPC88,      "PC-8801 VERSION",       "(C) 1988 KONAMI"},
-	{Common::kPlatformMSX,       "MSX2 VERSION",          "(C) 1988 KONAMI"},
+	{Common::kPlatformPC98,      "PC-8801 VERSION",       "(C) 1988 KONAMI"},
+	{Common::kPlatformUnknown,   "MSX2 / PC-88 VERSION",  "(C) 1988 KONAMI"},
 	{Common::kPlatformPCEngine,  "SUPER CD-ROM2 VERSION", "(C) 1992 KONAMI"},
 	{Common::kPlatformSaturn,    "SEGA SATURN VERSION",   "(C) 1996 KONAMI"},
 	{Common::kPlatformPSX,       "PLAYSTATION VERSION",   "(C) 1996 KONAMI"}

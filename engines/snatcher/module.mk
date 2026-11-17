@@ -10,6 +10,7 @@ MODULE_OBJS := \
 	mem_mapping.o \
 	metaengine.o \
 	palette.o \
+	palette_linear.o \
 	palette_scd.o \
 	resource.o \
 	saveload.o \
