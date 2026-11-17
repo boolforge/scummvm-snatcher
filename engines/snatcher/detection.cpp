@@ -72,6 +72,35 @@ DetectedGames SnatcherMetaEngineDetection::detectGames(const Common::FSList &fsl
 		}
 	}
 
+
+	// Universal direct unpacked fallback: detect any unpacked port directly without strict MD5 tables
+	if (games.empty()) {
+		bool hasPsx = false, hasPce = false, hasSaturn = false, hasPc88 = false, hasMsx = false;
+		for (const Common::FSNode &file : fslist) {
+			Common::String name = file.getName();
+			name.toLowercase();
+			if (name.contains("slps_") || name.contains("isz_") || name == "system.cnf") hasPsx = true;
+			if (name.startsWith("scene_") || name.contains("pce")) hasPce = true;
+			if (name == "data.bin" || name == "main_l.bin") hasSaturn = true;
+			if (name.contains("d88") || name.contains("disk1") || name.contains("pc88")) hasPc88 = true;
+			if (name.contains("snatcher.dsk") || name == "snatcher.com") hasMsx = true;
+		}
+
+		if (hasPsx || hasPce || hasSaturn || hasPc88 || hasMsx) {
+			DetectedGame g;
+			g.gameId = "snatcher";
+			g.description = hasPsx ? "Snatcher (PlayStation - Unpacked)" :
+			                hasPce ? "Snatcher (PC-Engine - Unpacked)" :
+			                hasSaturn ? "Snatcher (Sega Saturn - Unpacked)" :
+			                hasPc88 ? "Snatcher (PC-8801 - Unpacked)" : "Snatcher (MSX2 - Unpacked)";
+			g.language = Common::EN_ANY;
+			g.platform = hasPsx ? Common::kPlatformPSX :
+			             hasPce ? Common::kPlatformPCEngine :
+			             hasSaturn ? Common::kPlatformUnknown :
+			             hasPc88 ? Common::kPlatformUnknown : Common::kPlatformUnknown;
+			games.push_back(g);
+		}
+	}
 	return games;
 }
 
