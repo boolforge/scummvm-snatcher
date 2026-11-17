@@ -24,6 +24,8 @@
 
 #include "common/func.h"
 #include "common/platform.h"
+#include "graphics/pixelformat.h"
+#include "snatcher/boot_logo.h"
 #include "snatcher/info.h"
 #include "snatcher/resource.h"
 #include "snatcher/saveflags.h"
@@ -232,6 +234,8 @@ private:
 
 	uint8 *_screen;
 	Animator *_animator;
+	BootLogo *_bootLogo;
+	Graphics::PixelFormat _pxf;
 	Palette *_palette;
 	TextRenderer *_text;
 	TransitionManager *_trs;

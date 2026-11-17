@@ -46,11 +46,14 @@ GraphicsEngine::GraphicsEngine(const Graphics::PixelFormat *pxf, OSystem *system
 	assert(_animator);
 	_screen = new uint8[_animator->realScreenWidth() * _animator->realScreenHeight() * (pxf ? pxf->bytesPerPixel : 1)]();
 	assert(_screen);
+	_pxf = pxf ? *pxf : Graphics::PixelFormat::createFormatCLUT8();
+	_bootLogo = BootLogo::create(platform);
 	_animSaveLoadData = new uint8[64]();
 	assert(_animSaveLoadData);
 }
 
 GraphicsEngine::~GraphicsEngine() {
+	delete _bootLogo;
 	delete _animator;
 	delete _palette;
 	delete _trs;
@@ -505,7 +508,7 @@ void GraphicsEngine::createMouseCursor() {
 }
 
 int GraphicsEngine::displayBootLogoFrame(int frameNo) {
-	int res = _animator->drawBootLogoFrame(_screen, frameNo);
+	int res = _bootLogo ? _bootLogo->drawFrame(_screen, _animator->realScreenWidth(), _animator->realScreenHeight(), _pxf, _system, frameNo) : _animator->drawBootLogoFrame(_screen, frameNo);
 	_system->copyRectToScreen(_screen, _animator->realScreenWidth() * _bpp, 0, 0, _animator->realScreenWidth(), _animator->realScreenHeight());
 	_system->updateScreen();
 	return res;
