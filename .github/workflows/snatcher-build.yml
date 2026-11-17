@@ -70,7 +70,7 @@ jobs:
         run: |
           export ANDROID_NDK_ROOT="${{ steps.setup-ndk.outputs.ndk-path }}"
           export ANDROID_SDK_ROOT="/usr/local/lib/android/sdk"
-          ./configure --backend=android-arm64-v8a --disable-all-engines --enable-engine=snatcher --enable-release
+          ./configure --host=android-arm64-v8a --enable-engine=snatcher --enable-release
 
       - name: Compile Native ScummVM Engine & APK
         env:
