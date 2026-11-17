@@ -76,7 +76,7 @@ SoundDeviceMSX2::~SoundDeviceMSX2() {
 
 bool SoundDeviceMSX2::init(Audio::Mixer *mixer) {
 	_mixer = mixer;
-	return true;
+	return (_mixer != nullptr && _fio != nullptr);
 }
 
 void SoundDeviceMSX2::cdaPlay(int track, uint32 bcdTime) {

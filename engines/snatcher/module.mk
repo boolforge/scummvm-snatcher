@@ -3,6 +3,7 @@ MODULE := engines/snatcher
 MODULE_OBJS := \
 	action.o \
 	animator_linear.o \
+	animator_platform.o \
 	animator_scd.o \
 	boot_logo.o \
 	decompressor.o \
@@ -19,6 +20,7 @@ MODULE_OBJS := \
 	scene_d0.o \
 	scene_d1.o \
 	scene_d2.o \
+	scene_platform.o \
 	scene_sp.o \
 	scene_y16.o \
 	script.o \

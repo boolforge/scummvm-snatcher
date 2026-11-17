@@ -35,70 +35,9 @@
 #include "graphics/pixelformat.h"
 #include "graphics/segagfx.h"
 
+#include "snatcher/anim_object.h"
+
 namespace Snatcher {
-
-struct AnimObject {
-	AnimObject(int num) : id(num) {}
-
-	void clear() {
-		enable = blinkRate = drawFlags = 0;
-		posX = posY = 0;
-		relSpeedX = relSpeedY = 0;
-		palette = 0;
-		target = ovrTile = 0;
-		f1c = 0;
-		timeStamp = 0;
-		phase = 0;
-		controlFlags = allowFrameDrop = frameSeqCounter = 0;
-		frame = 0;
-		frameDelay = 0;
-		actionTimer = 0;
-		spriteTableLocation = 0;
-		res = ResourcePointer();
-		scriptData = ResourcePointer();
-		spriteData = nullptr;
-		absSpeedX = absSpeedY = 0;
-		parent = children = next = 0;
-		scriptComFlags = freeze = 0;
-		blink = blinkCounter = blinkDuration = 0;
-	}
-
-	uint16 enable = 0;
-	uint16 blinkRate = 0;
-	uint16 drawFlags = 0;
-	int32 posX = 0;
-	int32 posY = 0;
-	int32 relSpeedX = 0;
-	int32 relSpeedY = 0;
-	uint8 palette = 0;
-	uint16 target = 0;
-	uint16 ovrTile = 0;
-	uint8 f1c = 0;
-	uint32 timeStamp = 0;
-	uint8 phase = 0;
-	uint8 controlFlags = 0;
-	uint8 allowFrameDrop = 0;
-	uint8 frameSeqCounter = 0;
-	uint16 frame = 0;
-	int16 frameDelay = 0;
-	int16 actionTimer = 0;
-	uint32 spriteTableLocation = 0;
-	ResourcePointer res;
-	ResourcePointer scriptData;
-	const uint16 *spriteData = nullptr;
-	uint16 blink = 0;
-	uint16 blinkCounter = 0;
-	uint16 blinkDuration = 0;
-	int32 absSpeedX = 0;
-	int32 absSpeedY = 0;
-	uint16 parent = 0;
-	uint16 children = 0;
-	uint16 next = 0;
-	uint8 scriptComFlags = 0;
-	uint8 freeze = 0;
-
-	const uint8 id;
-};
 
 class GraphicsEngine;
 class Animator_SCD : public Animator, public Graphics::SegaRenderer::HINTClient {
@@ -1606,7 +1545,6 @@ void Animator_SCD::createMouseCursor() {
 // Boot logo sequence code. Modularized to load from files or static fallback without crashing
 int Animator_SCD::drawBootLogoFrame(uint8 *screen, int frameNo)  {
 	uint16 *tmp = reinterpret_cast<uint16*>(_tempBuffer);
-	uint32 len = 0;
 	uint16 val = 0;
 	uint8 r = 0;
 	uint8 g = 0;
@@ -1623,13 +1561,11 @@ int Animator_SCD::drawBootLogoFrame(uint8 *screen, int frameNo)  {
 		_bootsDelay = _bootsTotalFrames = 0;
 		_bootsHScroll = _bootsVScroll =  _bootsCol = 0;
 		if (StaticRes_SCD::_bootSeqData[0]) {
-			len = READ_BE_UINT16(StaticRes_SCD::_bootSeqData[0]);
 			uint32 decLen = Util::decodeSCDData(StaticRes_SCD::_bootSeqData[0] + 2, _tempBuffer);
 			if (decLen > 0)
 				_sr->loadToVRAM(_tempBuffer, decLen, 0x000);
 		}
 		if (StaticRes_SCD::_bootSeqData[1]) {
-			len = READ_BE_UINT16(StaticRes_SCD::_bootSeqData[1]);
 			uint32 decLen = Util::decodeSCDData(StaticRes_SCD::_bootSeqData[1] + 2, _tempBuffer);
 			if (decLen > 0)
 				_sr->loadToVRAM(_tempBuffer, decLen, 0x2000);
@@ -1661,7 +1597,6 @@ int Animator_SCD::drawBootLogoFrame(uint8 *screen, int frameNo)  {
 		for (int i = 0; i < 7; ++i)
 			_pal->setColor(50 + i, (colors[i] >> 8) & 0x0F, (colors[i] >> 4) & 0x0F, colors[i] & 0x0F);
 		if (StaticRes_SCD::_bootSeqData[3]) {
-			len = READ_BE_UINT16(StaticRes_SCD::_bootSeqData[3]);
 			uint32 decLen = Util::decodeSCDData(StaticRes_SCD::_bootSeqData[3] + 2, _tempBuffer);
 			if (decLen > 0)
 				_sr->loadToVRAM(_tempBuffer, decLen, 0xC000);
@@ -1676,7 +1611,6 @@ int Animator_SCD::drawBootLogoFrame(uint8 *screen, int frameNo)  {
 	case 3:
 		_bootsSprTbl = new uint8[128]();
 		if (StaticRes_SCD::_bootSeqData[2]) {
-			len = READ_BE_UINT16(StaticRes_SCD::_bootSeqData[2]);
 			uint32 decLen = Util::decodeSCDData(StaticRes_SCD::_bootSeqData[2] + 2, _tempBuffer);
 			if (decLen > 0)
 				_sr->loadToVRAM(_tempBuffer, decLen, 0xE000);

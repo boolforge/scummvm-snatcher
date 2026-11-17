@@ -12,6 +12,7 @@ lib*.a
 *.orig
 *.rej
 
+/scummvm*.ini
 /config.log
 /scummvm
 /libscummvm.so

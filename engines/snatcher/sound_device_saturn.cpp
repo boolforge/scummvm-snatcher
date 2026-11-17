@@ -83,7 +83,7 @@ SoundDeviceSaturn::~SoundDeviceSaturn() {
 
 bool SoundDeviceSaturn::init(Audio::Mixer *mixer) {
 	_mixer = mixer;
-	return true;
+	return (_mixer != nullptr && _fio != nullptr);
 }
 
 void SoundDeviceSaturn::cdaPlay(int track, uint32 bcdTime) {

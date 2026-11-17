@@ -23,6 +23,7 @@
 #define SNATCHER_ANIMATOR_LINEAR_H
 
 #include "snatcher/animator.h"
+#include "snatcher/anim_object.h"
 #include "graphics/pixelformat.h"
 
 namespace Snatcher {
@@ -71,6 +72,14 @@ public:
 	void createMouseCursor() override;
 	int drawBootLogoFrame(uint8 *screen, int frameNo) override;
 
+	// Framebuffer manipulation and blitting helpers
+	void blitBitmap16bpp(const uint16 *src, int w, int h, int dstX, int dstY);
+	void blitBitmapCLUT8(const uint8 *src, int w, int h, int dstX, int dstY);
+	void blitRGB24(const uint8 *src, int w, int h, int dstX, int dstY);
+	void clearScreen(uint32 color = 0);
+	uint8 *getFramebuffer() { return _framebuffer; }
+	AnimObject *getAnimObject(uint8 id) { return (id < 64) ? _animations[id] : nullptr; }
+
 private:
 	Common::Platform _platform;
 	Graphics::PixelFormat _pixelFormat;
@@ -80,6 +89,8 @@ private:
 	uint16 _height;
 	uint8 *_framebuffer;
 	uint8 *_textRenderBuffer;
+	uint16 _planeMode;
+	AnimObject *_animations[64];
 };
 
 Animator *createLinearAnimator(const Graphics::PixelFormat *pxf, Common::Platform platform,

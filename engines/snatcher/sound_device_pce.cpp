@@ -84,7 +84,7 @@ SoundDevicePCE::~SoundDevicePCE() {
 
 bool SoundDevicePCE::init(Audio::Mixer *mixer) {
 	_mixer = mixer;
-	return true;
+	return (_mixer != nullptr && _fio != nullptr);
 }
 
 void SoundDevicePCE::cdaPlay(int track, uint32 bcdTime) {

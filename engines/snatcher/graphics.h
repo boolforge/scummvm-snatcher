@@ -160,6 +160,7 @@ public:
 	void createMouseCursor();
 
 	int displayBootLogoFrame(int frameNo);
+	Animator *animator() const { return _animator; }
 
 public:
 	struct GfxState {

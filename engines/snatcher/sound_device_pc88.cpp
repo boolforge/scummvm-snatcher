@@ -75,7 +75,7 @@ SoundDevicePC88::~SoundDevicePC88() {
 
 bool SoundDevicePC88::init(Audio::Mixer *mixer) {
 	_mixer = mixer;
-	return true;
+	return (_mixer != nullptr && _fio != nullptr);
 }
 
 void SoundDevicePC88::cdaPlay(int track, uint32 bcdTime) {

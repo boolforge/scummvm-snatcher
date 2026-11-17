@@ -25,6 +25,7 @@
 #include "snatcher/resource.h"
 #include "snatcher/snatcher.h"
 #include "snatcher/scene.h"
+#include "snatcher/scene_platform.h"
 
 #include "common/stream.h"
 #include "common/memstream.h"
@@ -439,7 +440,7 @@ void ResourcePointer::checkOffset(int extraBytes, const char *caller) const {
 SceneModule::SceneModule(SnatcherEngine *vm, FIO *fio, const char *resFile, int index) : _vm(vm), _fio(fio), _resFile(resFile), _resIndex(index), _data(0), _dataSize(0), _updateHandler(0) {
 	assert(!_resFile.empty());
 	_data = _fio->fileData(_resFile, &_dataSize);
-	_updateHandler = _shList[_resIndex] ? (_shList[_resIndex])(_vm, this, _fio) : 0;
+	_updateHandler = createPlatformHandler(_vm->platform(), _vm, this, _fio, _resIndex);
 }
 
 SceneModule::~SceneModule() {
@@ -463,6 +464,29 @@ ResourcePointer SceneModule::getGfxData() const {
 void SceneModule::run(GameState &state) {
 	if (_updateHandler)
 		(*_updateHandler)(state);
+}
+
+SceneHandler *SceneModule::createPlatformHandler(Common::Platform platform, SnatcherEngine *vm, SceneModule *mod, FIO *fio, int index) {
+	if (platform == Common::kPlatformSegaCD) {
+		if (index >= 0 && index < 97 && _shList[index])
+			return (_shList[index])(vm, mod, fio);
+		return nullptr;
+	}
+
+	switch (platform) {
+	case Common::kPlatformPSX:
+		return createSceneHandler_PSX(vm, mod, fio, index);
+	case Common::kPlatformSaturn:
+		return createSceneHandler_Saturn(vm, mod, fio, index);
+	case Common::kPlatformPCEngine:
+		return createSceneHandler_PCE(vm, mod, fio, index);
+	case Common::kPlatformPC98:
+		return createSceneHandler_PC88(vm, mod, fio, index);
+	default:
+		if (fio && (fio->readStream("SNATCHER.IMG") || fio->readStream("Disk0/SNATCHER.IMG") || fio->readStream("SNATCHER.DSK") || fio->readStream("SNATCHER_EN.DSK")))
+			return createSceneHandler_MSX2(vm, mod, fio, index);
+		return createSceneHandler_PSX(vm, mod, fio, index);
+	}
 }
 
 #define S(id) &createSceneHandler_##id

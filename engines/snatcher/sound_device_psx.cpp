@@ -84,7 +84,7 @@ SoundDevicePSX::~SoundDevicePSX() {
 
 bool SoundDevicePSX::init(Audio::Mixer *mixer) {
 	_mixer = mixer;
-	return true;
+	return (_mixer != nullptr && _fio != nullptr);
 }
 
 void SoundDevicePSX::cdaPlay(int track, uint32 bcdTime) {

@@ -23,6 +23,7 @@
 #define SNATCHER_RESOURCE_H
 
 #include "common/fs.h"
+#include "common/platform.h"
 #include "common/scummsys.h"
 #include "snatcher/state.h"
 
@@ -116,6 +117,7 @@ private:
 
 	typedef SceneHandler*(SHFactory)(SnatcherEngine*, SceneModule*, FIO*);
 	static SHFactory *const _shList[97];
+	static SceneHandler *createPlatformHandler(Common::Platform platform, SnatcherEngine *vm, SceneModule *mod, FIO *fio, int index);
 };
 
 class FIO {
