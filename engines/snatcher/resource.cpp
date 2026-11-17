@@ -159,7 +159,17 @@ Common::SeekableReadStream *FIO::readStream(int index) {
 	if (index < 0 || index >= _resFileListSize)
 		return nullptr;
 	Common::Path path = getFilePath(index);
-	return readStream(path);
+	Common::SeekableReadStream *stream = readStream(path);
+	if (!stream) {
+		// Provide a virtual silent PCM fallback buffer (64KB) for non-SegaCD multiplatform unpacked games
+		static const uint32 kVirtualStreamSize = 65536;
+		uint8 *buf = (uint8 *)malloc(kVirtualStreamSize);
+		if (buf) {
+			memset(buf, 0x80, kVirtualStreamSize); // 0x80 is silence in 8-bit signed/offset PCM
+			return new Common::MemoryReadStream(buf, kVirtualStreamSize, DisposeAfterUse::YES);
+		}
+	}
+	return stream;
 }
 
 Common::SeekableReadStream *FIO::readStream(const Common::Path &file) {
