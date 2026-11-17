@@ -56,25 +56,24 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Android NDK
-        id: setup-ndk
-        uses: nttld/setup-ndk@v1
-        with:
-          ndk-version: '23.2.8568313'
-          link-to-sdk: true
+      - name: Install Android NDK via sdkmanager
+        run: |
+          echo "y" | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager "ndk;23.2.8568313"
+          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/23.2.8568313" >> $GITHUB_ENV
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/23.2.8568313" >> $GITHUB_ENV
 
       - name: Configure ScummVM Android ARM64
         env:
-          ANDROID_NDK_ROOT: ${{ steps.setup-ndk.outputs.ndk-path }}
+          ANDROID_NDK_ROOT: /usr/local/lib/android/sdk/ndk/23.2.8568313
           ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
         run: |
-          export ANDROID_NDK_ROOT="${{ steps.setup-ndk.outputs.ndk-path }}"
+          export ANDROID_NDK_ROOT="/usr/local/lib/android/sdk/ndk/23.2.8568313"
           export ANDROID_SDK_ROOT="/usr/local/lib/android/sdk"
           ./configure --host=android-arm64-v8a --enable-engine=snatcher --enable-release
 
       - name: Compile Native ScummVM Engine & APK
         env:
-          ANDROID_NDK_ROOT: ${{ steps.setup-ndk.outputs.ndk-path }}
+          ANDROID_NDK_ROOT: /usr/local/lib/android/sdk/ndk/23.2.8568313
           ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
         run: |
           make -j$(nproc)
