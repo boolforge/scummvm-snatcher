@@ -30,6 +30,13 @@ enum {
 	GI_SNATCHER = 0
 };
 
+enum SnatcherGameFeatures {
+	GF_UNCENSORED       = 1 << 0,
+	GF_FAN_TRANSLATION  = 1 << 1,
+	GF_RESTORED         = 1 << 2,
+	GF_DEFINITIVE       = 1 << 3
+};
+
 struct GameDescription {
 	uint8 gameID;
 	int soundOptions;
@@ -39,6 +46,7 @@ struct GameDescription {
 	bool usePALTiming;
 
 	Common::Language fanLang;
+	uint32 features;
 };
 
 } // End of namespace Snatcher
