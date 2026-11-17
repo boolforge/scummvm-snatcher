@@ -56,25 +56,24 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Prepare Android build configuration
-        run: |
-          echo "srcdir=$(pwd)" > dists/android/src.properties
-          mkdir -p dists/android/mainAssets/src/main/assets
-          touch dists/android/mainAssets/src/main/assets/MD5SUMS
-          cp dists/android/mainAssets.gradle dists/android/mainAssets/build.gradle
-          mkdir -p dists/android/build/intermediates
+      - name: Set up Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r25c
 
-      - name: Build Android Debug APK
-        env:
-          ANDROID_HOME: /usr/local/lib/android/sdk
+      - name: Configure ScummVM Android ARM64
         run: |
-          cd dists/android
-          chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace --no-daemon
+          ./configure --backend=android-arm64-v8a --disable-all-engines --enable-engine=snatcher --enable-release
+
+      - name: Compile Native ScummVM Engine & APK
+        run: |
+          make -j$(nproc)
+          make ScummVM-debug.apk
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v4
         with:
           name: scummvm-snatcher-android-debug-apk
-          path: dists/android/build/outputs/apk/debug/*.apk
+          path: ScummVM-debug.apk
           if-no-files-found: error
+
