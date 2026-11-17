@@ -2,6 +2,7 @@ MODULE := engines/snatcher
 
 MODULE_OBJS := \
 	action.o \
+	animator_linear.o \
 	animator_scd.o \
 	boot_logo.o \
 	fantranslations.o \

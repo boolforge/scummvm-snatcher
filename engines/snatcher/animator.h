@@ -81,15 +81,7 @@ private:
 	static Animator *createSCDAnimator(const Graphics::PixelFormat *pxf, GraphicsEngine::GfxState &state, Palette *pal, TransitionManager *scr, SoundEngine *snd, bool enableAspectRatioCorrection);
 
 public:
-	static Animator *create(const Graphics::PixelFormat *pxf, Common::Platform platform, GraphicsEngine::GfxState &state, Palette *pal, TransitionManager *scr, SoundEngine *snd, bool enableAspectRatioCorrection) {
-		switch (platform) {
-		case Common::kPlatformSegaCD:
-			return createSCDAnimator(pxf, state, pal, scr, snd, enableAspectRatioCorrection);
-		default:
-			return createSCDAnimator(pxf, state, pal, scr, snd, enableAspectRatioCorrection);
-		};
-		return 0;
-	}
+	static Animator *create(const Graphics::PixelFormat *pxf, Common::Platform platform, GraphicsEngine::GfxState &state, Palette *pal, TransitionManager *scr, SoundEngine *snd, bool enableAspectRatioCorrection);
 };
 
 } // End of namespace Snatcher
