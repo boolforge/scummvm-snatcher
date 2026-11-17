@@ -85,7 +85,7 @@ jobs:
         run: |
           export ANDROID_NDK_ROOT="/usr/local/lib/android/sdk/ndk/23.2.8568313"
           export ANDROID_SDK_ROOT="/usr/local/lib/android/sdk"
-          ./configure --host=android-arm64-v8a --enable-engine=snatcher --enable-release --with-extra-includes=$HOME/oboe/include --with-extra-libs=$HOME/oboe/build-arm64
+          ./configure --host=android-arm64-v8a --enable-engine=snatcher --enable-release
 
       - name: Compile Native ScummVM Engine & APK
         env:
