@@ -5,6 +5,7 @@ MODULE_OBJS := \
 	animator_linear.o \
 	animator_scd.o \
 	boot_logo.o \
+	decompressor.o \
 	fantranslations.o \
 	graphics.o \
 	memory.o \
