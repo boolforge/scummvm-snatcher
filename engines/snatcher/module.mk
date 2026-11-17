@@ -21,6 +21,7 @@ MODULE_OBJS := \
 	sound.o \
 	sound_device_scd.o \
 	staticres.o \
+	subcode_native.o \
 	text_scd.o \
 	transition_scd.o \
 	ui.o \
