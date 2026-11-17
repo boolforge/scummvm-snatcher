@@ -20,6 +20,7 @@
 */
 
 
+#include "snatcher/decompressor.h"
 #include "snatcher/mem_mapping.h"
 #include "snatcher/resource.h"
 #include "snatcher/snatcher.h"
@@ -156,6 +157,39 @@ uint8 *FIO::fileData(const Common::Path &file, uint32 *fileSize) {
 	uint8 *data = new uint8[size];
 	s->read(data, size);
 	delete s;
+
+	// Transparent in-engine decompression for platform-specific asset streams
+	if (Decompressor::isPS1LZSS(data, size)) {
+		// PS1 LZSS compressed image / scene chunk
+		const uint32 kMaxPS1DecompSize = 1024 * 1024; // 1MB heap buffer is enough for any PS1 VRAM tile transfer
+		uint8 *decomp = new uint8[kMaxPS1DecompSize];
+		uint32 decSize = Decompressor::decompressPS1LZSS(data, size, decomp, kMaxPS1DecompSize, 4);
+		if (decSize > 0) {
+			delete[] data;
+			data = decomp;
+			size = decSize;
+			if (fileSize)
+				*fileSize = size;
+		} else {
+			delete[] decomp;
+		}
+	} else if (Decompressor::isSaturnLZ3(data, size)) {
+		// Saturn LZ3 compressed chunk
+		uint32 outsize = READ_BE_UINT32(data);
+		if (outsize > 0 && outsize <= 0x1000000) {
+			uint8 *decomp = new uint8[outsize];
+			uint32 decSize = Decompressor::decompressSaturnLZ3(data, size, decomp, outsize);
+			if (decSize == outsize) {
+				delete[] data;
+				data = decomp;
+				size = decSize;
+				if (fileSize)
+					*fileSize = size;
+			} else {
+				delete[] decomp;
+			}
+		}
+	}
 
 	// The single speed CD drive fetches one sector (2048 decoded bytes) every 13.5 milliseconds.
 	_loadingTimer = g_system->getMillis() + ((((size + 0x7FF) >> 11) * 27) >> 1);
