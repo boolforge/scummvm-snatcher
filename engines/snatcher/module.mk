@@ -43,4 +43,5 @@ DETECT_OBJS += $(MODULE)/detection.o
 ifneq ($(ENABLE_SNATCHER), STATIC_PLUGIN)
 # External dependencies for detection.
 DETECT_OBJS += $(MODULE)/fantranslations.o
+DETECT_OBJS += $(MODULE)/mem_mapping.o
 endif

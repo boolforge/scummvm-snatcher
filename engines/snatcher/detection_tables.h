@@ -144,7 +144,7 @@ const SnatcherGameDescription adGameDescs[] = {
 			"snatcher",
 			"English",
 			AD_ENTRY2s(	"MAIN_L.BIN",	"fad37148d6ecd6a4b1fb6672f421041a", 259192,
-						"DATA.BIN",		"ff459bd721659f9d1f918f124c3193eb", 11008000),
+						"DATA.BIN",		"c4b0daa9b2dedd1370cdabdff6dbe21d", 11008000),
 			Common::EN_ANY,
 			Common::kPlatformSaturn,
 			ADGF_TESTING,
@@ -170,7 +170,7 @@ const SnatcherGameDescription adGameDescs[] = {
 		{
 			"snatcher",
 			"English",
-			AD_ENTRY1s(	"Snatcher (English) (Track 02).bin",	"26a3770c487365caa207db08262a9f0c", 81779568),
+			AD_ENTRY1s(	"Snatcher (English) (Track 02).bin",	"fff8c349b709f1a9632b348d256fb57e", 80779440),
 			Common::EN_ANY,
 			Common::kPlatformPCEngine,
 			ADGF_TESTING,
@@ -183,7 +183,7 @@ const SnatcherGameDescription adGameDescs[] = {
 		{
 			"snatcher",
 			"Japan",
-			AD_ENTRY1s(	"SNATCHER.DSK",	"efe6a96a11ccc38925b7e9756272008a", 8192000),
+			AD_ENTRY1s(	"SNATCHER.DSK",	"c2889c34c6903b3d9fd4af951895c490", 8192000),
 			Common::JA_JPN,
 			Common::kPlatformUnknown,
 			ADGF_TESTING,
@@ -196,7 +196,7 @@ const SnatcherGameDescription adGameDescs[] = {
 		{
 			"snatcher",
 			"English",
-			AD_ENTRY1s(	"SNATCHER_EN.DSK",	"d340f56c5376b3d209b80b351e509bcf", 8192000),
+			AD_ENTRY1s(	"SNATCHER_EN.DSK",	"c2889c34c6903b3d9fd4af951895c490", 8192000),
 			Common::EN_ANY,
 			Common::kPlatformUnknown,
 			ADGF_TESTING,
