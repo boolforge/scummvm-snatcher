@@ -2209,10 +2209,19 @@ SegaSoundDevice::SmpStrPtr SegaSoundDevice::getSamplesStream(uint32 addr) {
 			if (_temp[i] == 0xFF) {
 				loop = false;
 				readSize = i;
+				break;
 			}
 		}
-		if (readSize == 0)
-			error("%s(): Error reading file", __FUNCTION__);
+		if (readSize == 0) {
+			// Virtual fallback for multiplatform unpacked ports without PCM instrument dumps
+			uint8 *buff = new uint8[4]();
+			buff[0] = 0x80;
+			buff[1] = 0x80;
+			buff[2] = 0x80;
+			buff[3] = 0xFF;
+			_pcmCache.push_back(PCMCacheEntry(addr, _pcmResourceNumber, Common::SharedPtr<uint8>(buff, Common::ArrayDeleter<const uint8>()), 4));
+			return SmpStrPtr(new Common::MemoryReadStream(buff, 4, DisposeAfterUse::NO));
+		}
 
 		numSamples += readSize;
 		// The samples are supposed to have a 'FF' end marker, but we should still provide
