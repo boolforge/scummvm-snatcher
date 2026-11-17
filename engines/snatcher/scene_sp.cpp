@@ -120,4 +120,8 @@ implSP(35, 35); implSP(36, 36); implSP(37, 37); implSP(38, 38);
 
 #undef implSP
 
+SceneHandler *createSceneHandler_GenericScript(SnatcherEngine *vm, SceneModule *scn, FIO *fio) {
+	return new Scene_SP(vm, scn, fio, 999);
+}
+
 } // End of namespace Snatcher

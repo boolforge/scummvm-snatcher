@@ -68,6 +68,8 @@ declSP(35); declSP(36); declSP(37); declSP(38);
 
 #undef declSP
 
+SceneHandler *createSceneHandler_GenericScript(SnatcherEngine *vm, SceneModule *scn, FIO *fio);
+
 } // End of namespace Snatcher
 
 #endif // SNATCHER_SCENE_SP_H
