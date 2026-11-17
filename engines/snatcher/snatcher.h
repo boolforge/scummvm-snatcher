@@ -57,6 +57,8 @@ public:
 
 	SoundEngine *sound() const { return _snd; }
 	GraphicsEngine *gfx() const { return _gfx; }
+	Common::Platform platform() const { return _game.platform; }
+
 
 private:
 	// Startup

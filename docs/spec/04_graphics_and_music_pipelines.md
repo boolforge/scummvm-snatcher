@@ -32,23 +32,33 @@ Opcodes `o_chatWithPortraitAnim` and `o_pcmSound` synchronously drive portrait m
 
 ---
 
-## 3. PlayStation 1 DES Container & VRAM Layout
+## 3. Graphics Decoding Pipeline (`GraphicsEngine`, `Animator`, `Palette`)
 
-Decompressed PS1 `DES/*.BIN` graphics buffers (via `Decompressor::decompressPS1LZSS`) adhere to a fixed binary header layout indexing sprite elements and standard Sony PlayStation TIM structures:
+`GraphicsEngine` coordinates visual presentation through three subsystems:
+1. **`GraphicsEngine::runScript(ResourcePointer res, int func)`**:
+   - Dispatches scenario graphics scripts using a function pointer table.
+   - Command opcodes:
+     - `0x00`: `Palette::enqueueEvent` (loads palette changes).
+     - `0x01`: `Animator::initData(sc, _dataMode)` (transfers tile/bitmap data into VRAM).
+     - `0x02`: `Animator::initAnimations(sc, len, true)` (configures dynamic animation slots).
+     - `0x03` / `0x04`: `Animator::linkAnimations` (links chained animation sequences).
+     - `0x05`..`0x07`: Sets `_verbAreaType` (controls verb prompt window style).
+     - `0x08`: `Animator::setPlaneMode(mode)` (sets display planes and priority).
+     - `0x09`: `_dataMode = sc[1]` (handles multi-part 2048-byte DMA transfers).
 
-```c
-struct PS1_DES_ChunkHeader {
-    uint32_t offsetLayer1;     // Byte offset to background tile layer (e.g. 0x00006234)
-    uint32_t offsetLayer2;     // Byte offset to overlay tile layer (e.g. 0x00004310)
-    uint32_t offsetAnimTable;  // Byte offset to animation metadata (e.g. 0x00000210)
-    uint32_t flags;            // Layer display mode & CLUT bit depth (e.g. 0x00000008)
-};
-```
+2. **`Animator` Architecture**:
+   - `Animator_SCD` handles Sega CD native VDP tile graphics (plane A, plane B, window plane, sprites).
+   - `LinearAnimator` handles linear framebuffers for PlayStation (`320x240`), Saturn (`320x224`), and PC Engine (`256x224`).
 
-Sub-elements within decompressed `DES` streams:
-- `+0x0000`: 32-bit offset table referencing graphics sub-chunks.
-- `+0x00C3`: Embedded Sony PlayStation TIM image file signatures (`0x10 0x00 0x00 0x00`).
-  - Standard TIM header: `Tag (0x10)`, `Version/Flags (4bpp=0x08, 8bpp=0x09, 16bpp=0x02)`, `CLUT Header (X, Y, W, H, Colors)`, `Pixel Data Block (X, Y, W, H)`.
+3. **PlayStation 1 Native Asset Formats (`DES/` Streams)**:
+   - PS1 graphic assets in `DES/` are compressed with Konami PS1 LZSS (detected by magic `01 00 00 00` at `+0x00` and decompressed via `Decompressor::decompressPS1LZSS`).
+   - Binary streams are categorized into two core types:
+     - **`CC3_B*.BIN` (Background and Palette Streams):**
+       - `+0x00`: Table of 32-bit little-endian relative offsets pointing to image sub-blocks (`0x00006234`, `0x00004310`, `0x00000210`, etc.).
+       - Sub-blocks contain 16-bit packed RGB555 CLUTs and linear 4bpp/8bpp pixel matrices blitted directly into PSX VRAM coordinates.
+     - **`CXD_B*.BIN` (Cutscene and Dialogue Visual Data):**
+       - Contains 16-bit little-endian command arrays (e.g. `[0, 0, 17248, 0, 17204, 0, 8, ...]`) encoding coordinate offsets, animation step counts, and palette index assignments.
+
 
 ---
 

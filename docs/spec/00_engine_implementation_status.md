@@ -87,9 +87,56 @@ Total Implementation Files (`.cpp`): 38
 
 ---
 
-## 2. Code Quality & Gap Analysis
+## 2. Runtime Call Graph & Execution Flow
 
-- **Prohibited Keywords Check (`TODO`, `FIXME`, `STUB`, `HACK`):** Clean (0 instances).
-- **Multiplatform Fallback Logic:**
-  - `FIO::fileData` contains memory allocations for missing files when running on non-SegaCD versions without unified `ScummVM-Playable` containers.
-  - `SceneModule::_shList`: Index 0..1 (DATA_A0, DATA_B0) and 5..52 (DATA_F0..DATA_Y15) currently use `INVALD` (0) in the factory table, which causes `_updateHandler` to be null for non-SP scenes. These scenes rely on the bytecode VM rather than hardcoded scene handlers.
+```
+SnatcherEngine::run()
+  ├── SnatcherEngine::initResource()        -> FIO::FIO() & loads SUBCODE.BIN (index 96)
+  ├── SnatcherEngine::initSound()           -> SoundEngine -> SoundDevice::create(platform)
+  ├── SnatcherEngine::initGfx()             -> GraphicsEngine -> Animator::create(platform), Palette::create(platform)
+  ├── SnatcherEngine::initSaveLoad()        -> SaveLoadManager()
+  ├── SnatcherEngine::initScriptEngine()    -> CmdQueue(), UI(), ActionSequenceHandler(), ScriptEngine()
+  └── SnatcherEngine::start()               [MAIN GAMEPLAY LOOP]
+        ├── playBootLogoAnimation()         -> GraphicsEngine::displayBootLogoFrame() -> BootLogo::drawFrame()
+        └── while (!shouldQuit())
+              ├── updateMainState()         -> GameState phase 0..4 transitions
+              ├── updateModuleState()       -> Intro cutscenes (modPhaseTop 0..2) & in-game (modPhaseTop 5)
+              │     └── SceneModule::run()  -> (*_updateHandler)(state) [Scene_D0, Scene_D1, Scene_D2, Scene_Y16, Scene_SP]
+              ├── CmdQueue::run()           -> Dispatches queued graphical/audio commands
+              ├── UI::moveFlashLight()      -> Interactive flashlight / mouse position tracking
+              ├── UI::drawVerbs()           -> Renders verb window / choices (LOOK, INVESTIGATE, etc.)
+              ├── ScriptEngine::run()       -> Executes scenario bytecode instructions
+              ├── GraphicsEngine::updateAnimations()
+              ├── GraphicsEngine::updateText()
+              ├── GraphicsEngine::nextFrame()
+              └── SoundEngine::update()
+```
+
+---
+
+## 3. Platform Branch Audit (`Common::Platform`)
+
+| Subsystem | Source File | Implemented Architectures | Multiplatform Fallback & Status |
+|---|---|---|---|
+| **Boot Logos** | `boot_logo.cpp` | `kPlatformPSX` (PSX STR video stream), `kPlatformSaturn` (Saturn Cinepak AVI), `kPlatformSegaCD` (Native VDP sequence) | Unpacks and streams video sector data; gracefully falls through to main title. |
+| **Graphics & Rendering** | `animator.cpp`, `animator_linear.cpp`, `animator_scd.cpp` | `kPlatformSegaCD` -> `Animator_SCD` (320x224 tile planes); `kPlatformPSX`, `kPlatformSaturn`, `kPlatformPCEngine` -> `LinearAnimator` (Direct framebuffer) | Cleanly abstracted via `Animator` base interface. Native PS1 and Saturn resolutions mapped. |
+| **Palette Management** | `palette.cpp`, `palette_linear.cpp`, `palette_scd.cpp` | `kPlatformSegaCD` -> `SCDPalette` (CRAM 64 colors); Non-SCD -> `LinearPalette` (256-color direct CLUT) | Direct color updates dispatched via `updateSystemPalette()`. |
+| **Sound Synthesis** | `sound.cpp`, `sound_device_*.cpp` | `SoundDeviceSCD` (RF5C164 + YM2612), `SoundDevicePSX` (SPU ADPCM), `SoundDeviceSaturn` (SCSP), `SoundDevicePCE` (MSM5205 + HuC6280), `SoundDeviceMSX2` (SCC + PSG), `SoundDevicePC88` (OPN) | Platform-specific drivers created via `SoundDevice::create(platform)`. |
+| **Asset Filesystem** | `resource.cpp` | Sega CD (`DATA_*.BIN`, `SP*.BIN`), PS1 (`ISZ_B*.BIN`, `DES/CXD/*.BIN`, `DES/CC3/*.BIN`), PCE (`scenes/scene_*.bin`), Saturn (`DATA.BIN`) | Transparent decompression in `FIO::fileData` for PS1 LZSS (`Decompressor::decompressPS1LZSS`) and Saturn LZ3 (`Decompressor::decompressSaturnLZ3`). |
+
+---
+
+## 4. Scene Execution Architecture: Specialized Handlers vs. Bytecode VM
+
+In `engines/snatcher/`, scenes fall into two distinct execution paradigms:
+
+1. **Specialized Hardcoded Cutscene Handlers (`Scene_D0`, `Scene_D1`, `Scene_D2`, `Scene_Y16`):**
+   - **`Scene_D0` (`DATA_D0.BIN`):** Handles the Act 1 Opening Cutscene. It reads 35 exact timestamps from `MEM_TIMERDATA_02` within `DATA_D0.BIN` to synchronize graphics frames to CD-DA audio track 5 via `SoundEngine::cdaGetTime()`.
+   - **`Scene_D1` (`DATA_D1.BIN`):** Handles the Act 2 narrative intermission cutscene with timed palette fades.
+   - **`Scene_D2` (`DATA_D2.BIN`):** Handles the Act 3 intro cutscene.
+   - **`Scene_Y16` (`DATA_Y16.BIN`):** Handles the final ending credits crawl and music synchronization.
+
+2. **Universal Bytecode Script Handler (`Scene_SP`):**
+   - Wired to `createSceneHandler_GenericScript` across `SceneModule::_shList` for modules `DATA_A0`, `DATA_B0`, and `DATA_F0` through `DATA_Y15`, as well as playable scenes `SP00` through `SP38`.
+   - At runtime, `Scene_SP` initializes the scene graphics by executing the embedded graphics script at `SceneModule::getGfxData()`.
+   - On each tick, `Scene_SP::stepScript()` invokes `ScriptEngine::run(state.script)`, which interprets the 75 bytecode instructions, manages the evaluation stack and registers, populates verb menus via `UI::drawVerbs()`, and initiates shooting gallery sequences via `ActionSequenceHandler::run()`.
