@@ -19,6 +19,11 @@ MODULE_OBJS := \
 	script.o \
 	snatcher.o \
 	sound.o \
+	sound_device_msx2.o \
+	sound_device_pc88.o \
+	sound_device_pce.o \
+	sound_device_psx.o \
+	sound_device_saturn.o \
 	sound_device_scd.o \
 	staticres.o \
 	subcode_native.o \

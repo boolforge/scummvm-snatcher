@@ -68,6 +68,11 @@ protected:
 
 private:
 	static SoundDevice *createSegaSoundDevice(FIO *fio);
+	static SoundDevice *createPSXSoundDevice(FIO *fio);
+	static SoundDevice *createPCESoundDevice(FIO *fio);
+	static SoundDevice *createSaturnSoundDevice(FIO *fio);
+	static SoundDevice *createMSXSoundDevice(FIO *fio);
+	static SoundDevice *createPC88SoundDevice(FIO *fio);
 
 public:
 	static SoundDevice *create(FIO *fio, Common::Platform platform, int soundOptions);

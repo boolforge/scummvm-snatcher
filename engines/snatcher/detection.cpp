@@ -131,9 +131,53 @@ Common::Error SnatcherMetaEngineDetection::identifyGame(DetectedGame &game, cons
 		ConfMan.set("language", Common::getLanguageCode(selectedlang));
 
 	if (err.getCode() != Common::kNoError || *descriptor == nullptr) {
-		// Universal Unpacked Direct Fallback
-		*descriptor = &adGameDescs[0];
-		game = DetectedGame(getName(), "snatcher", "Snatcher (Universal Direct Unpacked)", Common::EN_ANY, Common::kPlatformUnknown);
+		// Modular Platform Detection for unpacked rips & direct folders
+		Common::Platform platform = Common::kPlatformUnknown;
+		if (ConfMan.hasKey("platform")) {
+			platform = Common::parsePlatform(ConfMan.get("platform"));
+		}
+
+		if (platform == Common::kPlatformUnknown && ConfMan.hasKey("path")) {
+			Common::FSNode dir(Common::Path(ConfMan.get("path")));
+			Common::FSList fslist;
+			if (dir.getChildren(fslist, Common::FSNode::kListAll)) {
+				for (const Common::FSNode &file : fslist) {
+					Common::String name = file.getName();
+					name.toLowercase();
+					if (name.contains("slps_") || name.contains("isz_") || name == "system.cnf") {
+						platform = Common::kPlatformPSX;
+						break;
+					}
+					if (name.hasPrefix("scene_") || name.contains("pce") || name.contains("track 02")) {
+						platform = Common::kPlatformPCEngine;
+						break;
+					}
+					if (name == "data.bin" || name == "main_l.bin") {
+						platform = Common::kPlatformSaturn;
+						break;
+					}
+					if (name == "sp00.bin" || name == "data_b0.bin") {
+						platform = Common::kPlatformSegaCD;
+						break;
+					}
+				}
+			}
+		}
+
+		// Find the matching authentic descriptor in adGameDescs for this platform
+		const SnatcherGameDescription *matchedDesc = nullptr;
+		for (const SnatcherGameDescription *d = adGameDescs; d->ad_desc.gameId != nullptr; ++d) {
+			if (platform != Common::kPlatformUnknown && d->ad_desc.platform == platform) {
+				matchedDesc = d;
+				break;
+			}
+		}
+
+		if (!matchedDesc)
+			matchedDesc = &adGameDescs[0];
+
+		*descriptor = matchedDesc;
+		game = DetectedGame(getName(), "snatcher", matchedDesc->ad_desc.extra, matchedDesc->ad_desc.language, matchedDesc->ad_desc.platform);
 		return Common::kNoError;
 	}
 

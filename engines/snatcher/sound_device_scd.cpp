@@ -931,8 +931,12 @@ void KonamiMCDSndChannel::jump(const uint8 *&data) {
 }
 
 void KonamiMCDSndChannel::checkPtr(const uint8 *data, uint8 bytesNeeded, const char *caller) {
-	if (data < _trackStart || data > _dataEnd - bytesNeeded)
-		error("%s(): Invalid memory access attempt", caller);
+	if (!data || !_trackStart || !_dataEnd || data < _trackStart || data > _dataEnd - bytesNeeded) {
+		warning("%s(): Invalid memory access attempt suppressed", caller);
+		_state.flags |= SndDriverState::kSndParseBreak;
+		_sndId = 0;
+		finish();
+	}
 }
 
 void KonamiMCDSndChannel::finish() {

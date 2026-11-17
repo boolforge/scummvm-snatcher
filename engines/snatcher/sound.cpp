@@ -193,13 +193,23 @@ public:
 };
 
 SoundDevice *SoundDevice::create(FIO *fio, Common::Platform platform, int soundOptions) {
-	if (platform == Common::kPlatformSegaCD) {
-		SoundDevice *dev = createSegaSoundDevice(fio);
-		if (dev)
-			return dev;
+	switch (platform) {
+	case Common::kPlatformSegaCD:
+		return createSegaSoundDevice(fio);
+	case Common::kPlatformPSX:
+		return createPSXSoundDevice(fio);
+	case Common::kPlatformPCEngine:
+		return createPCESoundDevice(fio);
+	case Common::kPlatformSaturn:
+		return createSaturnSoundDevice(fio);
+	default:
+		// Check sound options / retro flags for MSX2 and PC-88
+		if (soundOptions & 0x10)
+			return createMSXSoundDevice(fio);
+		if (soundOptions & 0x20)
+			return createPC88SoundDevice(fio);
+		return new NullSoundDevice();
 	}
-
-	return new NullSoundDevice();
 }
 
 } // End of namespace Snatcher
