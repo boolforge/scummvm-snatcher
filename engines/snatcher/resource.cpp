@@ -45,7 +45,7 @@ Common::Path FIO::getFilePath(int index) const {
 	if (_files.hasFile(standardPath))
 		return standardPath;
 
-	// PlayStation 1 scene mapping: SP00..SP38 -> ISZ_B000..ISZ_B260
+	// PlayStation 1 scene mapping: SP00..SP38 -> ISZ_B000..ISZ_B260 or DES/CXD/CXD_B*.BIN
 	if (index >= 57 && index <= 95) {
 		int sceneIdx = index - 57;
 		Common::String psxName = Common::String::format("ISZ_B%02X0.BIN", sceneIdx);
@@ -55,6 +55,31 @@ Common::Path FIO::getFilePath(int index) const {
 		Common::Path p2(Common::String::format("PLN/ISZ/%s", psxName.c_str()));
 		if (_files.hasFile(p2))
 			return p2;
+		Common::Path p3(Common::String::format("DES/CXD/CXD_B%02X0.BIN", sceneIdx));
+		if (_files.hasFile(p3))
+			return p3;
+
+		// PC Engine Super CD-ROM2: scene_06_sec0158_bank16.bin .. scene_26_sec029e_bank16.bin
+		Common::String pceName = Common::String::format("scenes/scene_%02d.bin", sceneIdx);
+		Common::Path pcePath(pceName);
+		if (_files.hasFile(pcePath))
+			return pcePath;
+
+		// Sega Saturn: DATA.BIN contains all packed scenes
+		Common::Path saturnPath("DATA.BIN");
+		if (_files.hasFile(saturnPath))
+			return saturnPath;
+
+		// MSX2 / PC-88 linear image mappings
+		Common::Path msxDisk("SNATCHER_EN.DSK");
+		if (_files.hasFile(msxDisk))
+			return msxDisk;
+		Common::Path msxDiskJp("SNATCHER.DSK");
+		if (_files.hasFile(msxDiskJp))
+			return msxDiskJp;
+		Common::Path pc88Img("disk_linear.img");
+		if (_files.hasFile(pc88Img))
+			return pc88Img;
 	}
 
 	return standardPath;
