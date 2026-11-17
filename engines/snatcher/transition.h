@@ -24,6 +24,7 @@
 
 #include "common/platform.h"
 #include "common/scummsys.h"
+#include "snatcher/graphics.h"
 #include "snatcher/saveflags.h"
 
 namespace Common {
@@ -82,15 +83,7 @@ private:
 	static TransitionManager *createSegaTransitionManager(GraphicsEngine::GfxState &state);
 
 public:
-	static TransitionManager *create(Common::Platform platform, GraphicsEngine::GfxState &state) {
-		switch (platform) {
-		case Common::kPlatformSegaCD:
-			return createSegaTransitionManager(state);
-		default:
-			return createSegaTransitionManager(state);
-		};
-		return 0;
-	}
+	static TransitionManager *create(Common::Platform platform, GraphicsEngine::GfxState &state);
 };
 
 } // End of namespace Snatcher

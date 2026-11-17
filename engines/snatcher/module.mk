@@ -32,6 +32,7 @@ MODULE_OBJS := \
 	subcode_native.o \
 	text_linear.o \
 	text_scd.o \
+	transition_linear.o \
 	transition_scd.o \
 	ui.o \
 	util.o
