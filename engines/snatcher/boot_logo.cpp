@@ -20,15 +20,305 @@
  */
 
 #include "snatcher/boot_logo.h"
+#include "video/psx_decoder.h"
+#include "video/avi_decoder.h"
+#include "common/archive.h"
+#include "common/config-manager.h"
+#include "common/file.h"
+#include "common/stream.h"
 #include "common/system.h"
 #include "common/util.h"
 #include "graphics/paletteman.h"
+#include "graphics/surface.h"
 
 namespace Snatcher {
 
 namespace {
 
-// 5x7 glyphs, one byte per row (bit 4 = leftmost pixel).
+// Helper to open a game stream either via SearchMan or via direct path in ConfMan("path")
+Common::SeekableReadStream *openGameStream(const Common::String &dirName, const Common::String &fileName) {
+	Common::Path directPath(fileName);
+	Common::SeekableReadStream *stream = SearchMan.createReadStreamForMember(directPath);
+	if (stream)
+		return stream;
+
+	Common::Path subPath(dirName.empty() ? fileName : dirName + "/" + fileName);
+	stream = SearchMan.createReadStreamForMember(subPath);
+	if (stream)
+		return stream;
+
+	if (ConfMan.hasKey("path")) {
+		Common::Path gamePath(ConfMan.getPath("path"));
+		Common::FSNode gameDir(gamePath);
+
+		Common::FSNode directNode = gameDir.getChild(fileName);
+		if (directNode.exists() && directNode.isReadable()) {
+			Common::File *f = new Common::File();
+			if (f->open(directNode))
+				return f;
+			delete f;
+		}
+
+		if (!dirName.empty()) {
+			Common::FSNode subDirNode = gameDir.getChild(dirName);
+			if (subDirNode.exists() && subDirNode.isDirectory()) {
+				Common::FSNode fileNode = subDirNode.getChild(fileName);
+				if (fileNode.exists() && fileNode.isReadable()) {
+					Common::File *f = new Common::File();
+					if (f->open(fileNode))
+						return f;
+					delete f;
+				}
+			}
+		}
+	}
+	return nullptr;
+}
+
+// Blit a decoded frame surface into the engine linear framebuffer
+void blitFrameToScreen(const Graphics::Surface *frame, uint8 *screen, int width, int height, const Graphics::PixelFormat &pxf) {
+	if (!frame || !screen)
+		return;
+
+	const int bpp = pxf.bytesPerPixel ? pxf.bytesPerPixel : 1;
+	const int copyW = MIN<int>(width, frame->w);
+	const int copyH = MIN<int>(height, frame->h);
+	const int dstX = (width - copyW) / 2;
+	const int dstY = (height - copyH) / 2;
+
+	if (copyW < width || copyH < height) {
+		memset(screen, 0, width * height * bpp);
+	}
+
+	for (int y = 0; y < copyH; ++y) {
+		uint8 *dstRow = screen + ((dstY + y) * width + dstX) * bpp;
+		if (bpp == frame->format.bytesPerPixel && (bpp == 2 || bpp == 4)) {
+			const uint8 *srcRow = (const uint8 *)frame->getBasePtr(0, y);
+			memcpy(dstRow, srcRow, copyW * bpp);
+		} else if (bpp == 2) {
+			for (int x = 0; x < copyW; ++x) {
+				uint8 r, g, b;
+				frame->format.colorToRGB(frame->getPixel(x, y), r, g, b);
+				uint16 color = (uint16)pxf.RGBToColor(r, g, b);
+				((uint16 *)dstRow)[x] = color;
+			}
+		} else if (bpp == 4) {
+			for (int x = 0; x < copyW; ++x) {
+				uint8 r, g, b;
+				frame->format.colorToRGB(frame->getPixel(x, y), r, g, b);
+				uint32 color = pxf.RGBToColor(r, g, b);
+				((uint32 *)dstRow)[x] = color;
+			}
+		} else if (bpp == 1) {
+			for (int x = 0; x < copyW; ++x) {
+				uint8 r, g, b;
+				frame->format.colorToRGB(frame->getPixel(x, y), r, g, b);
+				uint8 gray = (uint8)((r * 77 + g * 150 + b * 29) >> 8);
+				dstRow[x] = gray;
+			}
+		}
+	}
+}
+
+// -----------------------------------------------------------------------------
+// PS1 STR Stream Reader Adapter
+// Converts 2048-byte user data sectors from STR files into 2352-byte raw CD-XA
+// Mode 2 Form 2 sectors expected by ScummVM's Video::PSXStreamDecoder.
+// -----------------------------------------------------------------------------
+const uint32 kRawSectorSize = 2352;
+const uint32 kUserSectorSize = 2048;
+
+class PSXRawSectorReadStream final : public Common::SeekableReadStream {
+public:
+	explicit PSXRawSectorReadStream(Common::SeekableReadStream *parentStream)
+		: _stream(parentStream), _pos(0), _cachedSector(-1) {
+		int64 streamSize = _stream ? _stream->size() : 0;
+		_sectorCount = streamSize / kUserSectorSize;
+		_totalRawSize = _sectorCount * (int64)kRawSectorSize;
+	}
+
+	~PSXRawSectorReadStream() override {
+		delete _stream;
+	}
+
+	uint32 read(void *dataPtr, uint32 dataSize) override {
+		byte *dst = static_cast<byte *>(dataPtr);
+		uint32 bytesRead = 0;
+
+		while (bytesRead < dataSize && _pos < _totalRawSize) {
+			int64 sectorIdx = _pos / kRawSectorSize;
+			uint32 offsetInSector = (uint32)(_pos % kRawSectorSize);
+
+			if (!fillSector(sectorIdx))
+				break;
+
+			uint32 canRead = MIN<uint32>(dataSize - bytesRead, kRawSectorSize - offsetInSector);
+			memcpy(dst + bytesRead, _sectorBuf + offsetInSector, canRead);
+			bytesRead += canRead;
+			_pos += canRead;
+		}
+
+		return bytesRead;
+	}
+
+	bool eos() const override { return _pos >= _totalRawSize; }
+	bool err() const override { return _stream ? _stream->err() : true; }
+	void clearErr() override { if (_stream) _stream->clearErr(); }
+	int64 pos() const override { return _pos; }
+	int64 size() const override { return _totalRawSize; }
+
+	bool seek(int64 offset, int whence = SEEK_SET) override {
+		int64 target = 0;
+		switch (whence) {
+		case SEEK_SET: target = offset; break;
+		case SEEK_CUR: target = _pos + offset; break;
+		case SEEK_END: target = _totalRawSize + offset; break;
+		default: return false;
+		}
+		if (target < 0 || target > _totalRawSize)
+			return false;
+		_pos = target;
+		return true;
+	}
+
+private:
+	bool fillSector(int64 sectorIdx) {
+		if (sectorIdx == _cachedSector)
+			return true;
+		if (sectorIdx < 0 || sectorIdx >= _sectorCount)
+			return false;
+
+		if (!_stream->seek(sectorIdx * kUserSectorSize))
+			return false;
+
+		// 12 bytes CD-XA sync header
+		memset(_sectorBuf, 0xFF, 12);
+		_sectorBuf[0] = 0x00;
+		_sectorBuf[11] = 0x00;
+
+		// 4 bytes header: min, sec, sector, mode
+		_sectorBuf[12] = 0;
+		_sectorBuf[13] = (byte)((sectorIdx / 75) % 60);
+		_sectorBuf[14] = (byte)(sectorIdx % 75);
+		_sectorBuf[15] = 2; // Mode 2 Form 2
+
+		// 4 bytes subheader: file=0, chan=1, submode=CDXA_TYPE_VIDEO (0x02), coding=0
+		_sectorBuf[16] = 0;
+		_sectorBuf[17] = 1;    // Channel 1
+		_sectorBuf[18] = 0x02; // CDXA_TYPE_VIDEO
+		_sectorBuf[19] = 0;
+
+		// 4 bytes subheader copy
+		memcpy(_sectorBuf + 20, _sectorBuf + 16, 4);
+
+		// 2048 bytes user data (MDEC sector chunks)
+		uint32 readBytes = _stream->read(_sectorBuf + 24, kUserSectorSize);
+		if (readBytes < kUserSectorSize)
+			memset(_sectorBuf + 24 + readBytes, 0, kUserSectorSize - readBytes);
+
+		// 280 bytes tail (EDC/ECC)
+		memset(_sectorBuf + 24 + kUserSectorSize, 0, 280);
+
+		_cachedSector = sectorIdx;
+		return true;
+	}
+
+	Common::SeekableReadStream *_stream;
+	int64 _sectorCount;
+	int64 _totalRawSize;
+	int64 _pos;
+	int64 _cachedSector;
+	byte _sectorBuf[kRawSectorSize];
+};
+
+// -----------------------------------------------------------------------------
+// PS1 Authentic Boot Video Logo
+// Plays MX0_S000.STR (Konami intro movie) directly from original game assets
+// -----------------------------------------------------------------------------
+class PS1BootLogo : public BootLogo {
+public:
+	PS1BootLogo() : _decoder(Video::PSXStreamDecoder::kCD2x), _loaded(false), _lastSurface(nullptr) {
+		Common::SeekableReadStream *stream = openGameStream("STR", "MX0_S000.STR");
+		if (!stream)
+			return;
+
+		Common::SeekableReadStream *rawStream = new PSXRawSectorReadStream(stream);
+		if (_decoder.loadStream(rawStream)) {
+			_decoder.start();
+			_loaded = true;
+		}
+	}
+
+	int drawFrame(uint8 *screen, int width, int height, const Graphics::PixelFormat &pxf, OSystem *system, int frameNo) override {
+		if (!_loaded)
+			return -1;
+
+		if (_decoder.endOfVideo())
+			return -1;
+
+		const Graphics::Surface *frame = _decoder.decodeNextFrame();
+		if (frame) {
+			_lastSurface = frame;
+		}
+
+		if (_lastSurface) {
+			blitFrameToScreen(_lastSurface, screen, width, height, pxf);
+		}
+
+		return frameNo + 1;
+	}
+
+private:
+	Video::PSXStreamDecoder _decoder;
+	bool _loaded;
+	const Graphics::Surface *_lastSurface;
+};
+
+// -----------------------------------------------------------------------------
+// Sega Saturn Authentic Boot Video Logo
+// Plays LOGO.TRM (Konami animated AVI logo) directly from original game assets
+// -----------------------------------------------------------------------------
+class SaturnBootLogo : public BootLogo {
+public:
+	SaturnBootLogo() : _loaded(false), _lastSurface(nullptr) {
+		Common::SeekableReadStream *stream = openGameStream("", "LOGO.TRM");
+		if (!stream)
+			return;
+
+		if (_decoder.loadStream(stream)) {
+			_decoder.start();
+			_loaded = true;
+		}
+	}
+
+	int drawFrame(uint8 *screen, int width, int height, const Graphics::PixelFormat &pxf, OSystem *system, int frameNo) override {
+		if (!_loaded)
+			return -1;
+
+		if (_decoder.endOfVideo())
+			return -1;
+
+		const Graphics::Surface *frame = _decoder.decodeNextFrame();
+		if (frame) {
+			_lastSurface = frame;
+		}
+
+		if (_lastSurface) {
+			blitFrameToScreen(_lastSurface, screen, width, height, pxf);
+		}
+
+		return frameNo + 1;
+	}
+
+private:
+	Video::AVIDecoder _decoder;
+	bool _loaded;
+	const Graphics::Surface *_lastSurface;
+};
+
+// -----------------------------------------------------------------------------
+// PC-8801 / MSX2 / PC Engine Fallback Banners
+// -----------------------------------------------------------------------------
 struct Glyph {
 	char c;
 	uint8 rows[7];
@@ -58,7 +348,6 @@ const Glyph kFont[] = {
 	{'-', {0x00, 0x00, 0x00, 0x1F, 0x00, 0x00, 0x00}}
 };
 
-// Per-port boot data. Add a row (or a BootLogo subclass) to support a new port.
 struct PlatformBanner {
 	Common::Platform platform;
 	const char *system;
@@ -68,9 +357,7 @@ struct PlatformBanner {
 const PlatformBanner kBanners[] = {
 	{Common::kPlatformPC98,      "PC-8801 VERSION",       "(C) 1988 KONAMI"},
 	{Common::kPlatformUnknown,   "MSX2 / PC-88 VERSION",  "(C) 1988 KONAMI"},
-	{Common::kPlatformPCEngine,  "SUPER CD-ROM2 VERSION", "(C) 1992 KONAMI"},
-	{Common::kPlatformSaturn,    "SEGA SATURN VERSION",   "(C) 1996 KONAMI"},
-	{Common::kPlatformPSX,       "PLAYSTATION VERSION",   "(C) 1996 KONAMI"}
+	{Common::kPlatformPCEngine,  "SUPER CD-ROM2 VERSION", "(C) 1992 KONAMI"}
 };
 
 const int kFadeFrames = 30;
@@ -93,7 +380,6 @@ public:
 
 		const int bpp = pxf.bytesPerPixel ? pxf.bytesPerPixel : 1;
 		if (bpp == 1 && !_paletteSet) {
-			// Index == gray level, so the same pixel value works for every fade step.
 			byte pal[256 * 3];
 			for (int i = 0; i < 256; ++i)
 				pal[i * 3] = pal[i * 3 + 1] = pal[i * 3 + 2] = i;
@@ -106,12 +392,10 @@ public:
 		const uint32 konamiRed = (bpp == 1) ? (uint32)(level * 180 / 255) : pxf.RGBToColor(level * 196 / 255, 0, level * 26 / 255);
 		memset(screen, 0, width * height * bpp);
 
-		// Render authentic Konami Ribbon Logo (two stylized arcs / ribbons)
 		const int cx = width / 2;
 		const int cy = height / 3 - 8;
 		const int rScale = MAX(1, width / 200);
 
-		// Upper orange ribbon arc
 		for (int dy = -16 * rScale; dy <= -4 * rScale; ++dy) {
 			int y = cy + dy;
 			int row = dy / rScale + 16;
@@ -122,7 +406,6 @@ public:
 			}
 		}
 
-		// Lower red ribbon arc
 		for (int dy = -2 * rScale; dy <= 10 * rScale; ++dy) {
 			int y = cy + dy;
 			int row = dy / rScale + 2;
@@ -153,7 +436,7 @@ private:
 			return;
 		uint8 *p = screen + (y * width + x) * bpp;
 		for (int i = 0; i < bpp; ++i)
-			p[i] = (color >> (8 * i)) & 0xFF; // little-endian host layout matches ScummVM's native format
+			p[i] = (color >> (8 * i)) & 0xFF;
 	}
 
 	static void drawCentered(uint8 *screen, int width, int height, int bpp, uint32 color, const char *text, int y, int s) {
@@ -180,10 +463,18 @@ private:
 
 BootLogo *BootLogo::create(Common::Platform platform) {
 	if (platform == Common::kPlatformSegaCD)
-		return nullptr;
+		return nullptr; // Handled natively by Animator_SCD
+
+	if (platform == Common::kPlatformPSX)
+		return new PS1BootLogo();
+
+	if (platform == Common::kPlatformSaturn)
+		return new SaturnBootLogo();
+
 	for (uint i = 0; i < ARRAYSIZE(kBanners); ++i)
 		if (kBanners[i].platform == platform)
 			return new BannerBootLogo(kBanners[i]);
+
 	return nullptr;
 }
 
