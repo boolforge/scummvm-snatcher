@@ -54,6 +54,20 @@ const SnatcherGameDescription adGameDescs[] = {
 		},
 		SNATCHER_FLAGS(MDT_SEGACD, true, true, 0)
 	},
+	// PlayStation 1 - English Translated (Bridged / Dumper Unpacked)
+	{
+		{
+			"snatcher",
+			"PS1 Unpacked",
+			AD_ENTRY2s(	"DATA_B0.BIN",	"63170d11da5ebc3a66ecf0fc2d23e78a", 24176,
+						"SP05.BIN",		"13d254ff139d1fc86ecd9682e2e910d3", 2929),
+			Common::EN_ANY,
+			Common::kPlatformSegaCD,
+			ADGF_TESTING,
+			GUIO2(GUIO_NOSPEECHVOLUME, GUIO_MIDISEGACD)
+		},
+		SNATCHER_FLAGS(MDT_SEGACD, true, false, Snatcher::GF_FAN_TRANSLATION)
+	},
 	// Sega CD - Spanish Translation (Proyecto Snatcher / Tradusquare)
 	{
 		{
