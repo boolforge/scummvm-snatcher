@@ -20,6 +20,7 @@
  */
 
 #include "snatcher/palette_platform.h"
+#include "snatcher/generated/msx2_v9938_palette_table.h"
 #include "graphics/paletteman.h"
 #include "common/util.h"
 
@@ -197,12 +198,9 @@ Palette_MSX2::~Palette_MSX2() {
 }
 
 void Palette_MSX2::setDefaults(int mode) {
-	// Initialize exact 256-color Yamaha V9938 Screen 8 GGGRRRBB direct color space
+	// Initialize exact 256-color Yamaha V9938 Screen 8 GGGRRRBB direct color space from RE ground-truth table
 	for (int i = 0; i < 256; ++i) {
-		uint8 g = ((i >> 5) & 0x07) * 255 / 7;
-		uint8 r = ((i >> 2) & 0x07) * 255 / 7;
-		uint8 b = (i & 0x03) * 255 / 3;
-		setColor(i, r, g, b);
+		setColor(i, kMSX2Screen8Colors[i][0], kMSX2Screen8Colors[i][1], kMSX2Screen8Colors[i][2]);
 	}
 	_dirty = true;
 	updateSystemPalette();

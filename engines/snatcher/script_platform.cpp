@@ -20,6 +20,13 @@
  */
 
 #include "snatcher/script_platform.h"
+#include "snatcher/generated/ps1_hardware_entry_map.h"
+#include "snatcher/generated/saturn_hardware_map.h"
+#include "snatcher/generated/pce_bank16_scene_map.h"
+#include "snatcher/generated/pc88_hardware_map.h"
+#include "snatcher/generated/segacd_hardware_map.h"
+#include "snatcher/generated/msx2_v9938_palette_table.h"
+#include "snatcher/generated/ps1_angr_functions.h"
 #include "snatcher/resource.h"
 #include "snatcher/snatcher.h"
 #include "snatcher/ui.h"
