@@ -8,7 +8,7 @@
     "black_ratio": 0.003,
     "anomalies": [],
     "spec_match": true,
-    "llm_review": "This rendering result matches Sega CD's Genesis VDP 64-color tilemap with Sub-CPU ASIC Word RAM scaling (320x224). The measured resolution is 320x224, with 82 colors, and the brightness is 0.89. There are no anomalies detected."
+    "llm_review": "This rendering result matches Sega CD's Genesis VDP 64-color tilemap with Sub-CPU ASIC Word RAM scaling (320x224). The measured dimensions are 320x224, and the color depth is 82 colors. The brightness is 0.89, which is a reasonable value for a 64-color tilemap. There are no anomalies detected in this rendering result."
   },
   "PC Engine": {
     "status": "PASS",
@@ -19,7 +19,7 @@
     "black_ratio": 0.597,
     "anomalies": [],
     "spec_match": true,
-    "llm_review": "This rendering result matches authentic console hardware standards. The HuC6270 VDC planar tiles and HuC6260 VCE 9-bit master palette (256x224) are both recognized and supported by the console. The brightness is set to 0.23, which is within the acceptable range for a console. The anomalies detected are none, indicating that the rendering is consistent with the console's hardware specifications."
+    "llm_review": "This rendering result matches authentic console hardware standards. The HuC6270 VDC planar tiles and HuC6260 VCE 9-bit master palette (256x224) are both recognized and supported by the console hardware. The brightness is set to 0.23, which is within the acceptable range for a typical console. The anomalies detected are none, indicating that the rendering is correct and meets the console hardware standards."
   },
   "PlayStation 1": {
     "status": "PASS",
@@ -30,7 +30,7 @@
     "black_ratio": 0.003,
     "anomalies": [],
     "spec_match": true,
-    "llm_review": "This rendering result matches authentic console hardware standards. The console uses a 16-bit direct BGR555 frame with a drop-shadow text, and the measured resolution is 320x240 with 89 colors. The brightness is 0.89, which is within the acceptable range for a console."
+    "llm_review": "The rendering result matches the specifications provided for PlayStation 1. The frame is 320x240 pixels, with 89 colors, and the brightness is 0.89. There are no anomalies detected."
   },
   "Sega Saturn": {
     "status": "PASS",
@@ -41,7 +41,7 @@
     "black_ratio": 0.605,
     "anomalies": [],
     "spec_match": true,
-    "llm_review": "The rendering result matches Sega Saturn's specifications for VDP1 sprites and VDP2 NBG1 high-resolution background planes (320x224). The measurements are consistent with the console's specifications, including the number of colors, brightness, and resolution. There are no anomalies detected in the rendering."
+    "llm_review": "This rendering result matches Sega Saturn's hardware standards. The VDP1 sprites and VDP2 NBG1 high-resolution background planes are correctly measured with a resolution of 320x224, with 50 colors, and a brightness of 0.275. The anomalies detected are none, as the rendering is consistent with the console's hardware specifications."
   },
   "MSX2": {
     "status": "PASS",
@@ -52,7 +52,7 @@
     "black_ratio": 0.599,
     "anomalies": [],
     "spec_match": true,
-    "llm_review": "This rendering result matches authentic console hardware standards. The screen resolution is 256x212, which is a standard resolution for a Yamaha V9938 screen. The brightness is 0.225, which is a standard brightness for a Yamaha V9938 screen. There are no anomalies detected in this rendering result."
+    "llm_review": "This rendering result matches authentic console hardware standards. The screen resolution is 256x212, which is a common resolution for Yamaha V9938 screens. The brightness is 0.225, which is a common brightness value for Yamaha V9938 screens. There are no anomalies detected in this rendering result."
   },
   "PC-8801": {
     "status": "PASS",
@@ -63,6 +63,6 @@
     "black_ratio": 0.606,
     "anomalies": [],
     "spec_match": true,
-    "llm_review": "This rendering result matches the authentic console hardware standards for the NEC uPD7220 3-plane digital RGB (B, R, G) planar bitmap (640x400). The measurements are consistent with the console's specifications, including the number of planes, color depth, and brightness. There are no anomalies detected, confirming that this is a valid console hardware rendering result."
+    "llm_review": "This rendering result matches the authentic console hardware standards for the NEC uPD7220 3-plane digital RGB (B, R, G) planar bitmap (640x400). The measurements are consistent with the console's specifications, including the number of planes, color depth, and brightness. There are no anomalies detected in the rendering."
   }
 }
