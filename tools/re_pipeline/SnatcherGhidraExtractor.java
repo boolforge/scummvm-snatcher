@@ -3,9 +3,10 @@
 import ghidra.app.script.GhidraScript;
 import ghidra.app.decompiler.DecompInterface;
 import ghidra.app.decompiler.DecompileResults;
+import ghidra.app.plugin.core.analysis.AutoAnalysisManager;
 import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.FunctionIterator;
-import ghidra.program.model.data.DataType;
+import ghidra.program.model.address.Address;
 import ghidra.program.model.symbol.Symbol;
 import ghidra.program.model.symbol.SymbolTable;
 import ghidra.program.model.symbol.SymbolIterator;
@@ -26,6 +27,16 @@ public class SnatcherGhidraExtractor extends GhidraScript {
 
         File outFile = new File(outDir, progName + "_ghidra_decompiled.c");
         File symFile = new File(outDir, progName + "_ghidra_symbols.txt");
+
+        // If raw binary with no functions identified yet, seed entry point and analyze
+        if (currentProgram.getFunctionManager().getFunctionCount() == 0) {
+            println("[*] No functions discovered in raw binary. Auto-disassembling from base address...");
+            Address minAddr = currentProgram.getMinAddress();
+            if (minAddr != null) {
+                disassemble(minAddr);
+                createFunction(minAddr, "entry_point");
+            }
+        }
 
         PrintWriter writer = new PrintWriter(outFile);
         PrintWriter symWriter = new PrintWriter(symFile);

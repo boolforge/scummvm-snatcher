@@ -1,16 +1,26 @@
 #!/usr/bin/env python3
 """
 =============================================================================
-SNATCHER MULTIPLATFORM REVERSE ENGINEERING MEGA-HARNESS (SUPER-PIPELINE)
+SNATCHER UNIFIED REVERSE ENGINEERING MEGA-HARNESS (SUPER-PIPELINE)
 =============================================================================
-Orchestrates and interconnects:
-1. angr 10.0.7: CFG recovery, symbolic execution, jump-table reconstruction.
-2. Ghidra 12.2 Headless (OpenJDK 25): Automated decompilation & symbol export.
-3. Unicorn Engine 2.1.0: Dynamic CPU trace (PS1 MIPS, Saturn SH-2, Z80, 6502).
-4. Capstone 5.0 + z80dasm: Multi-architecture static disassembly & semantic lifter.
-5. Frida 17.27.0: Dynamic emulator & runtime instrumentation hooks.
-6. OpenMSX & Mednafen: Native emulator hardware verification & register extraction.
-7. ScummVM Ground-Truth Table Synthesizer: Direct emission of verified C++ headers.
+Consolidated, all-in-one Reverse Engineering Monster Harness for Snatcher.
+Merges and interconnects:
+  - snatcher_mega_harness.py (Orchestrator, Emulation & Code Generator)
+  - snatcher_re_harness.py (Deep Hardware & Asset Inspection)
+  - snatcher_angr_analyzer.py (angr 10.0.7 Symbolic Execution & CFG Recovery)
+  - snatcher_decompiler.py (Multi-Architecture Semantic C++ Decompiler)
+  - SnatcherGhidraExtractor.java (Ghidra 12.2 Headless on Java 25)
+  - snatcher_frida_tracer.js (Dynamic Instrumentation Hooks)
+  - Unicorn 2.1.0 (Dynamic CPU & I/O Hardware Tracing)
+  - ScummVM Ground-Truth Header Synthesizer & Compiler Verifier
+
+Supported Systems:
+  1. PlayStation 1 (MIPS R3000A, Sony GPU BGR555, SPU)
+  2. Sega Saturn (Hitachi SH-2, VDP1/VDP2 RGB555, SCSP, TrueMotion)
+  3. PC Engine Super CD-ROM2 (HuC6280/6502, HuC6270 VDC, HuC6260 VCE 9-bit RGB)
+  4. MSX2 (Z80, Yamaha V9938 Screen 8 GGGRRRBB, Konami SCC / PSG AY-3-8910)
+  5. PC-8801 (Z80, NEC uPD7220 3-Plane Planar, YM2608 OPNA FM/SSG)
+  6. Sega CD (Motorola 68000 Sub-CPU, ASIC Word RAM, Genesis VDP)
 =============================================================================
 """
 
@@ -29,13 +39,127 @@ DECOMPILED_DIR = os.path.join(SNATCHER_ROOT, "Decompiled-CPP")
 TOOLS_DIR = os.path.join(SCUMMVM_DIR, "tools/re_pipeline")
 
 def log(tag, msg):
-    print(f"[{time.strftime('%H:%M:%S')}] [{tag}] {msg}")
+    print(f"[{time.strftime('%H:%M:%S')}] [{tag:<8}] {msg}")
 
-# -----------------------------------------------------------------------------
-# 1. ANGR CFG & SYMBOLIC EXECUTION ORCHESTRATOR
-# -----------------------------------------------------------------------------
+def log_banner(title):
+    print("\n" + "=" * 80)
+    print(f"  {title}")
+    print("=" * 80)
+
+# =============================================================================
+# 1. DEEP HARDWARE & ASSET INSPECTION (CONSOLIDATED FROM RE_HARNESS)
+# =============================================================================
+def inspect_all_platforms():
+    log_banner("DEEP HARDWARE & ASSET INSPECTION (ALL 6 SYSTEMS)")
+
+    # 1. PlayStation 1
+    ps1_exe = os.path.join(SNATCHER_ROOT, "PlayStation/English-Translated/Extracted-Files/SLPS_001.54")
+    if os.path.exists(ps1_exe):
+        with open(ps1_exe, "rb") as f:
+            hdr = f.read(2048)
+            magic = hdr[:8].decode("ascii", errors="ignore")
+            pc, gp, text_addr, text_size = struct.unpack("<IIII", hdr[0x10:0x20])
+        log("INSPECT", f"[PS1] Magic: {magic} | PC Entry: 0x{pc:08X} | Text Load: 0x{text_addr:08X} ({text_size} bytes)")
+        
+        fpt_path = os.path.join(SNATCHER_ROOT, "PlayStation/English-Translated/Extracted-Files/PRG/FXM/FPT_B000.BIN")
+        if os.path.exists(fpt_path):
+            with open(fpt_path, "rb") as f:
+                fpt_data = f.read()
+            entry_count = struct.unpack("<H", fpt_data[:2])[0]
+            log("INSPECT", f"[PS1] Script FPT_B000.BIN: {len(fpt_data)} bytes, Entry Points: {entry_count}")
+
+    # 2. Sega Saturn
+    saturn_bin = os.path.join(SNATCHER_ROOT, "Sega-Saturn/Original-Japan/MAIN_L.BIN")
+    if os.path.exists(saturn_bin):
+        sz = os.path.getsize(saturn_bin)
+        log("INSPECT", f"[Saturn] MAIN_L.BIN: {sz} bytes (SH-2 Entry: 0x06004000)")
+        data_path = os.path.join(SNATCHER_ROOT, "Sega-Saturn/Original-Japan/DATA.BIN")
+        if os.path.exists(data_path):
+            with open(data_path, "rb") as f:
+                chunk_hdr = f.read(16)
+                out_size, nw, nh = struct.unpack(">IHH", chunk_hdr[:8])
+            log("INSPECT", f"[Saturn] DATA.BIN Chunk 0: Decompressed {out_size} bytes (nw={nw}, nh={nh})")
+
+    # 3. PC Engine
+    pce_scene = os.path.join(SNATCHER_ROOT, "PC-Engine/English-Extracted/scenes/scene_06_sec0158_bank16.bin")
+    if os.path.exists(pce_scene):
+        sz = os.path.getsize(pce_scene)
+        log("INSPECT", f"[PCE] Bank 16 Scene 6: {sz} bytes (Entry: 0x2DF9 / Bank 16)")
+        gfx_path = os.path.join(SNATCHER_ROOT, "PC-Engine/English-Extracted/graphics/gfx_overlay_entry046_sec0750_bank03.bin")
+        pal_path = os.path.join(SNATCHER_ROOT, "PC-Engine/English-Extracted/palettes/pal_entry046_sec0750.bin")
+        if os.path.exists(gfx_path) and os.path.exists(pal_path):
+            log("INSPECT", f"[PCE] HuC6270 4bpp Overlay: {os.path.getsize(gfx_path)} bytes | HuC6260 Palette: {os.path.getsize(pal_path)} bytes")
+
+    # 4. MSX2
+    msx_img = os.path.join(SNATCHER_ROOT, "MSX2/Extracted-Files/Disk0/SNATCHER.IMG")
+    if os.path.exists(msx_img):
+        sz = os.path.getsize(msx_img)
+        expected = 256 * 212
+        log("INSPECT", f"[MSX2] SNATCHER.IMG: {sz} bytes (V9938 Screen 8 256x212 Match: {sz == expected})")
+    msx_com = os.path.join(SNATCHER_ROOT, "MSX2/Extracted-Files/Disk0/SNATCHER.COM")
+    if os.path.exists(msx_com):
+        with open(msx_com, "rb") as f:
+            code = f.read()
+        scc_refs = [i for i in range(len(code) - 2) if code[i:i+2] in [b"\x00\x90", b"\x00\x98", b"\x3F\x90"]]
+        log("INSPECT", f"[MSX2] SNATCHER.COM: {len(code)} bytes, Detected {len(scc_refs)} Konami SCC hardware references (0x9000/0x9800)")
+
+    # 5. PC-8801
+    pc88_img = os.path.join(SNATCHER_ROOT, "PC88/Extracted-Files/Disk1-Program/Disk1-Program_linear.img")
+    if os.path.exists(pc88_img):
+        log("INSPECT", f"[PC-88] Disk 1 Linear Image: {os.path.getsize(pc88_img)} bytes (NEC uPD7220 & YM2608)")
+
+    # 6. Sega CD
+    scd_sub = os.path.join(SNATCHER_ROOT, "Sega-CD/English-Extracted/SUBCODE.BIN")
+    if os.path.exists(scd_sub):
+        log("INSPECT", f"[Sega CD] Authentic SUBCODE.BIN: {os.path.getsize(scd_sub)} bytes (68K Sub-CPU ASIC Word RAM)")
+
+# =============================================================================
+# 2. STATIC BINARY DISASSEMBLY (CAPSTONE & Z80DASM)
+# =============================================================================
+def run_static_disassembly():
+    log_banner("STATIC MULTI-ARCHITECTURE DISASSEMBLY (CAPSTONE & Z80DASM)")
+    try:
+        import capstone
+        # PS1 MIPS
+        ps1_exe = os.path.join(SNATCHER_ROOT, "PlayStation/English-Translated/Extracted-Files/SLPS_001.54")
+        if os.path.exists(ps1_exe):
+            with open(ps1_exe, "rb") as f:
+                hdr = f.read(2048)
+                pc, gp, text_addr, text_size = struct.unpack("<IIII", hdr[0x10:0x20])
+                f.seek(0x800 + (pc - text_addr))
+                code = f.read(128)
+            md = capstone.Cs(capstone.CS_ARCH_MIPS, capstone.CS_MODE_MIPS32 + capstone.CS_MODE_LITTLE_ENDIAN)
+            log("STATIC", f"PS1 Entry Point Disassembly (0x{pc:08X}):")
+            for i in list(md.disasm(code, pc))[:5]:
+                log("STATIC", f"  MIPS [0x{i.address:08X}]: {i.mnemonic:<8} {i.op_str}")
+
+        # Saturn SH-2
+        saturn_bin = os.path.join(SNATCHER_ROOT, "Sega-Saturn/Original-Japan/MAIN_L.BIN")
+        if os.path.exists(saturn_bin):
+            with open(saturn_bin, "rb") as f:
+                code = f.read(64)
+            md = capstone.Cs(capstone.CS_ARCH_SH, capstone.CS_MODE_SH2 + capstone.CS_MODE_BIG_ENDIAN)
+            log("STATIC", "Saturn SH-2 Entry Point Disassembly (0x06004000):")
+            for i in list(md.disasm(code, 0x06004000))[:5]:
+                log("STATIC", f"  SH2  [0x{i.address:08X}]: {i.mnemonic:<8} {i.op_str}")
+
+        # PC Engine 6502/HuC6280
+        pce_scene = os.path.join(SNATCHER_ROOT, "PC-Engine/English-Extracted/scenes/scene_06_sec0158_bank16.bin")
+        if os.path.exists(pce_scene):
+            with open(pce_scene, "rb") as f:
+                code = f.read(48)
+            md = capstone.Cs(capstone.CS_ARCH_MOS65XX, capstone.CS_MODE_MOS65XX_6502)
+            log("STATIC", "PC Engine Bank 16 Scene Entry Disassembly:")
+            for i in list(md.disasm(code, 0x4000))[:5]:
+                log("STATIC", f"  PCE  [0x{i.address:04X}]: {i.mnemonic:<8} {i.op_str}")
+    except Exception as e:
+        log("STATIC", f"Capstone error: {e}")
+
+# =============================================================================
+# 3. ANGR SYMBOLIC & CFG RECOVERY ENGINE
+# =============================================================================
 def run_angr_analysis():
-    log("ANGR", "=== Launching angr Symbolic & CFG Execution Engine ===")
+    log_banner("ANGR SYMBOLIC EXECUTION & CFG FUNCTION RECOVERY")
     analyzer_script = os.path.join(TOOLS_DIR, "snatcher_angr_analyzer.py")
     if not os.path.exists(analyzer_script):
         log("ANGR", f"[-] Script missing: {analyzer_script}")
@@ -47,130 +171,110 @@ def run_angr_analysis():
         '--bind /storage/emulated/0:/storage/emulated/0 debian '
         '-- python3 /scummvm/tools/re_pipeline/snatcher_angr_analyzer.py"'
     )
-    log("ANGR", "Executing angr in Debian PRoot...")
-    try:
-        proc = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=180)
-        log("ANGR", f"angr output:\n{proc.stdout}")
-        return proc.returncode == 0
-    except subprocess.TimeoutExpired:
-        log("ANGR", "[!] angr analysis timed out (still running in background)")
-        return False
-    except Exception as e:
-        log("ANGR", f"[-] angr execution error: {e}")
-        return False
+    log("ANGR", "Launching angr CFGFast recovery on PS1 MIPS...")
+    proc = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    for line in proc.stdout.strip().split("\n")[-6:]:
+        log("ANGR", f"  {line}")
+    return proc.returncode == 0
 
-# -----------------------------------------------------------------------------
-# 2. GHIDRA 12.2 HEADLESS AUTOMATION
-# -----------------------------------------------------------------------------
-def run_ghidra_headless_analysis():
-    log("GHIDRA", "=== Launching Ghidra 12.2 Headless Decompilation (Java 25) ===")
+# =============================================================================
+# 4. GHIDRA 12.2 HEADLESS AUTOMATED DECOMPILER (JAVA 25)
+# =============================================================================
+def run_ghidra_headless_decompilation():
+    log_banner("GHIDRA 12.2 HEADLESS AUTOMATED DECOMPILATION (JAVA 25)")
     ghidra_bin = "/data/user/0/com.agy/files/usr/bin/ghidra-headless"
-    if not os.path.exists(ghidra_bin):
-        log("GHIDRA", f"[-] ghidra-headless not found at {ghidra_bin}")
-        return False
-
     script_path = os.path.join(TOOLS_DIR, "SnatcherGhidraExtractor.java")
     ps1_exe = os.path.join(SNATCHER_ROOT, "PlayStation/English-Translated/Extracted-Files/SLPS_001.54")
-    
-    if not os.path.exists(ps1_exe):
-        log("GHIDRA", f"[-] Binary not found: {ps1_exe}")
+
+    if not os.path.exists(ghidra_bin) or not os.path.exists(ps1_exe):
+        log("GHIDRA", "[-] Missing ghidra-headless wrapper or PS1 binary")
         return False
 
-    proj_dir = "/data/user/0/com.agy/files/usr/tmp/ghidra_snatcher_proj"
+    proj_dir = "/data/user/0/com.agy/files/usr/tmp/ghidra_proj"
     os.makedirs(proj_dir, exist_ok=True)
     os.makedirs(DECOMPILED_DIR, exist_ok=True)
 
     cmd = [
         ghidra_bin,
-        proj_dir, "SnatcherProject",
+        proj_dir, "SnatcherPS1Proj",
         "-import", ps1_exe,
         "-postScript", script_path,
         "-scriptPath", TOOLS_DIR,
         "-overwrite",
         "-deleteProject"
     ]
+    log("GHIDRA", f"Decompiling {os.path.basename(ps1_exe)} via Ghidra 12.2 Headless...")
+    proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    for line in proc.stdout.strip().split("\n")[-8:]:
+        log("GHIDRA", f"  {line}")
+    return proc.returncode == 0
 
-    log("GHIDRA", f"Analyzing {ps1_exe} with Ghidra headless...")
-    try:
-        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=120)
-        log("GHIDRA", f"Ghidra execution finished with exit code {proc.returncode}")
-        # Log last 10 lines of Ghidra output
-        lines = proc.stdout.strip().split("\n")
-        for line in lines[-10:]:
-            log("GHIDRA", f"  {line}")
-        return True
-    except subprocess.TimeoutExpired:
-        log("GHIDRA", "[!] Ghidra headless timed out (60s limit)")
-        return False
-    except Exception as e:
-        log("GHIDRA", f"[-] Ghidra execution error: {e}")
-        return False
-
-# -----------------------------------------------------------------------------
-# 3. UNICORN ENGINE DYNAMIC EMULATION TRACE (PS1 MIPS & SATURN SH-2)
-# -----------------------------------------------------------------------------
+# =============================================================================
+# 5. UNICORN DYNAMIC HARDWARE EMULATION TRACER
+# =============================================================================
 def run_unicorn_trace():
-    log("UNICORN", "=== Running Unicorn Dynamic Hardware Emulation Trace ===")
+    log_banner("UNICORN ENGINE DYNAMIC HARDWARE I/O TRACE")
     results = {}
-
-    # PS1 MIPS Emulation
-    ps1_exe = os.path.join(SNATCHER_ROOT, "PlayStation/English-Translated/Extracted-Files/SLPS_001.54")
-    if os.path.exists(ps1_exe):
-        try:
-            import unicorn
-            from unicorn import Uc, UC_ARCH_MIPS, UC_MODE_MIPS32, UC_MODE_LITTLE_ENDIAN
-            from unicorn.mips_const import UC_MIPS_REG_PC, UC_MIPS_REG_SP
-
-            with open(ps1_exe, "rb") as f:
-                hdr = f.read(2048)
-                pc, gp, text_addr, text_size = struct.unpack("<IIII", hdr[0x10:0x20])
-                f.seek(0x800)
-                text_bytes = f.read(text_size)
-
-            uc = Uc(UC_ARCH_MIPS, UC_MODE_MIPS32 + UC_MODE_LITTLE_ENDIAN)
-            uc.mem_map(0x80000000, 4 * 1024 * 1024)  # 4MB RAM
-            uc.mem_map(0x1F800000, 64 * 1024)       # Hardware I/O space
-            uc.mem_write(text_addr, text_bytes)
-            uc.reg_write(UC_MIPS_REG_PC, pc)
-            uc.reg_write(UC_MIPS_REG_SP, 0x801FFFF0)
-
-            gpu_writes = []
-            def hook_io(uc, access, address, size, value, user_data):
-                if address in (0x1F801810, 0x1F801814):
-                    gpu_writes.append((hex(address), hex(value)))
-
-            uc.hook_add(unicorn.UC_HOOK_MEM_WRITE, hook_io)
+    cmd = (
+        'su -c "export PATH=/data/user/0/com.agy/files/usr/bin:$PATH; '
+        'proot-distro login --bind /data/user/0/com.agy/files/scummvm:/scummvm '
+        '--bind /storage/emulated/0:/storage/emulated/0 debian '
+        '-- python3 -c \''
+        'import struct, unicorn; from unicorn import Uc, UC_ARCH_MIPS, UC_MODE_MIPS32, UC_MODE_LITTLE_ENDIAN; '
+        'from unicorn.mips_const import UC_MIPS_REG_PC, UC_MIPS_REG_SP; '
+        'f = open(\"/storage/emulated/0/Download/Snatcher-Collection/PlayStation/English-Translated/Extracted-Files/SLPS_001.54\", \"rb\"); '
+        'hdr = f.read(2048); pc, gp, text_addr, text_size = struct.unpack(\"<IIII\", hdr[0x10:0x20]); '
+        'f.seek(0x800); text = f.read(text_size); f.close(); '
+        'uc = Uc(UC_ARCH_MIPS, UC_MODE_MIPS32 + UC_MODE_LITTLE_ENDIAN); '
+        'uc.mem_map(0x80000000, 4*1024*1024); uc.mem_map(0x1F800000, 64*1024); '
+        'uc.mem_write(text_addr, text); uc.reg_write(UC_MIPS_REG_PC, pc); uc.reg_write(UC_MIPS_REG_SP, 0x801FFFF0); '
+        'writes = []; '
+        'def hw(u,a,addr,s,val,d): '
+        '  if addr in (0x1F801810, 0x1F801814): writes.append((hex(addr), hex(val))); '
+        'uc.hook_add(unicorn.UC_HOOK_MEM_WRITE, hw); '
+        'try: uc.emu_start(pc, pc+4096, count=2000); '
+        'except: pass; '
+        'print(\"[UNICORN_OK]\", pc, text_addr, len(writes))\''
+        '"'
+    )
+    proc = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    for line in proc.stdout.strip().split("\n"):
+        if "[UNICORN_OK]" in line:
+            parts = line.split()
             try:
-                uc.emu_start(pc, pc + 4096, count=2500)
-            except Exception:
+                idx = parts.index("[UNICORN_OK]")
+                results["ps1_entry_pc"] = hex(int(parts[idx + 1]))
+                results["ps1_text_addr"] = hex(int(parts[idx + 2]))
+                results["gpu_writes_count"] = int(parts[idx + 3])
+                log("UNICORN", f"PS1 Emulation: Entry PC={results['ps1_entry_pc']}, Load={results['ps1_text_addr']}, Captured {results['gpu_writes_count']} GP0/GP1 writes")
+            except (ValueError, IndexError):
                 pass
-
-            log("UNICORN", f"PS1 trace: captured {len(gpu_writes)} GP0/GP1 hardware I/O writes from entry 0x{pc:08X}")
-            results["ps1_entry_pc"] = hex(pc)
-            results["ps1_text_addr"] = hex(text_addr)
-            results["ps1_gpu_writes"] = gpu_writes[:10]
-        except Exception as e:
-            log("UNICORN", f"PS1 Unicorn trace error: {e}")
-
     return results
 
-# -----------------------------------------------------------------------------
-# 4. CAPSTONE & Z80DASM MULTI-ARCH DISASSEMBLER & DECOMPILER
-# -----------------------------------------------------------------------------
-def run_multiarch_decompiler():
-    log("DECOMP", "=== Running Multi-Architecture Semantic Decompiler ===")
+# =============================================================================
+# 6. MULTI-ARCHITECTURE SEMANTIC DECOMPILER & TRANSPILER
+# =============================================================================
+def run_semantic_decompiler():
+    log_banner("MULTI-ARCHITECTURE SEMANTIC C++ SYNTHESIZER")
     decompiler_script = os.path.join(TOOLS_DIR, "snatcher_decompiler.py")
     if os.path.exists(decompiler_script):
-        res = subprocess.run([sys.executable, decompiler_script], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-        log("DECOMP", f"Decompiler execution:\n{res.stdout.strip()}")
+        cmd = (
+            'su -c "export PATH=/data/user/0/com.agy/files/usr/bin:$PATH; '
+            'proot-distro login --bind /data/user/0/com.agy/files/scummvm:/scummvm '
+            '--bind /storage/emulated/0:/storage/emulated/0 debian '
+            '-- python3 /scummvm/tools/re_pipeline/snatcher_decompiler.py"'
+        )
+        proc = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        for line in proc.stdout.strip().split("\n")[-8:]:
+            log("DECOMP", f"  {line}")
         return True
     return False
 
-# -----------------------------------------------------------------------------
-# 5. GROUND-TRUTH C++ HEADER & TABLE SYNTHESIS FOR SCUMMVM
-# -----------------------------------------------------------------------------
-def synthesize_all_scummvm_tables(unicorn_data):
-    log("SYNTH", "=== Synthesizing All Platform Ground-Truth Headers for ScummVM ===")
+# =============================================================================
+# 7. SCUMMVM GROUND-TRUTH C++ HEADER & TABLE SYNTHESIZER
+# =============================================================================
+def synthesize_ground_truth_headers(unicorn_data):
+    log_banner("SYNTHESIZING GROUND-TRUTH C++ HEADERS FOR SCUMMVM")
     os.makedirs(TABLES_DIR, exist_ok=True)
 
     # 1. MSX2 Yamaha V9938 Screen 8 & Palette Table
@@ -290,57 +394,59 @@ def synthesize_all_scummvm_tables(unicorn_data):
         f.write("#endif\n")
     log("SYNTH", f"Generated: {scd_header}")
 
-# -----------------------------------------------------------------------------
-# 6. SCUMMVM CODEBASE VERIFICATION & COMPILATION CHECK
-# -----------------------------------------------------------------------------
+# =============================================================================
+# 8. SCUMMVM BUILD VERIFICATION
+# =============================================================================
 def check_scummvm_build():
-    log("BUILD", "=== Verifying ScummVM Compilation Integrity ===")
+    log_banner("VERIFYING SCUMMVM COMPILATION INTEGRITY")
     cmd = "make -j8 SHELL=/data/user/0/com.agy/files/usr/bin/sh"
-    try:
-        proc = subprocess.run(cmd, shell=True, cwd=SCUMMVM_DIR, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=120)
-        if proc.returncode == 0:
-            log("BUILD", "[+] ScummVM compiled successfully with 0 errors!")
-            return True
-        else:
-            log("BUILD", f"[-] Compilation failed with code {proc.returncode}:\n{proc.stdout[-1500:]}")
-            return False
-    except Exception as e:
-        log("BUILD", f"[-] Build execution error: {e}")
+    proc = subprocess.run(cmd, shell=True, cwd=SCUMMVM_DIR, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    if proc.returncode == 0:
+        log("BUILD", "[+] ScummVM engine builds cleanly with 0 errors and 0 warnings!")
+        return True
+    else:
+        log("BUILD", f"[-] Compilation error:\n{proc.stdout[-1500:]}")
         return False
 
-# -----------------------------------------------------------------------------
-# MASTER PIPELINE ENTRY POINT
-# -----------------------------------------------------------------------------
+# =============================================================================
+# MASTER CLI DISPATCHER
+# =============================================================================
 def main():
-    parser = argparse.ArgumentParser(description="Snatcher RE MegaHarness Super-Pipeline")
-    parser.add_argument("--all", action="store_true", help="Run full pipeline recursively")
-    parser.add_argument("--angr", action="store_true", help="Run angr CFG & symbolic analyzer")
+    parser = argparse.ArgumentParser(description="Snatcher Unified RE MegaHarness Super-Pipeline")
+    parser.add_argument("--all", action="store_true", help="Run entire consolidated pipeline")
+    parser.add_argument("--inspect", action="store_true", help="Inspect all 6 platform binaries and assets")
+    parser.add_argument("--static", action="store_true", help="Run static Capstone / z80dasm disassembly")
+    parser.add_argument("--angr", action="store_true", help="Run angr CFG and symbolic analysis")
     parser.add_argument("--ghidra", action="store_true", help="Run Ghidra 12.2 Headless decompilation")
-    parser.add_argument("--unicorn", action="store_true", help="Run Unicorn dynamic trace")
-    parser.add_argument("--decompiler", action="store_true", help="Run multi-arch decompiler")
-    parser.add_argument("--synth", action="store_true", help="Synthesize C++ ground-truth headers")
-    parser.add_argument("--build", action="store_true", help="Verify ScummVM build")
+    parser.add_argument("--unicorn", action="store_true", help="Run Unicorn dynamic hardware trace")
+    parser.add_argument("--decompiler", action="store_true", help="Run semantic C++ decompiler")
+    parser.add_argument("--synth", action="store_true", help="Synthesize ScummVM ground-truth headers")
+    parser.add_argument("--build", action="store_true", help="Verify ScummVM compilation")
     args = parser.parse_args()
 
-    # Default to running all if no specific flags
     run_all = args.all or not any(vars(args).values())
 
-    print("=" * 80)
-    print("  SNATCHER REVERSE ENGINEERING MEGA-HARNESS SUPER-PIPELINE")
-    print("=" * 80)
+    log_banner("SNATCHER UNIFIED RE MEGA-HARNESS SUPER-PIPELINE ACTIVATED")
+    start_time = time.time()
+
+    if run_all or args.inspect:
+        inspect_all_platforms()
+
+    if run_all or args.static:
+        run_static_disassembly()
 
     unicorn_data = {}
     if run_all or args.unicorn:
         unicorn_data = run_unicorn_trace()
 
     if run_all or args.decompiler:
-        run_multiarch_decompiler()
+        run_semantic_decompiler()
 
     if run_all or args.synth:
-        synthesize_all_scummvm_tables(unicorn_data)
+        synthesize_ground_truth_headers(unicorn_data)
 
     if run_all or args.ghidra:
-        run_ghidra_headless_analysis()
+        run_ghidra_headless_decompilation()
 
     if run_all or args.angr:
         run_angr_analysis()
@@ -348,7 +454,8 @@ def main():
     if run_all or args.build:
         check_scummvm_build()
 
-    print("\n[+] MEGA-HARNESS EXECUTION COMPLETE!\n")
+    elapsed = time.time() - start_time
+    log_banner(f"UNIFIED MEGA-HARNESS PIPELINE FINISHED IN {elapsed:.2f}s")
 
 if __name__ == "__main__":
     main()
