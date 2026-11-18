@@ -2,6 +2,6 @@
   "provider": "local",
   "api_key": "local-no-key",
   "base_url": "http://127.0.0.1:8080/v1",
-  "model": "/data/user/0/com.agy/files/models/SmolLM2-135M-Q4_K_M.gguf",
+  "model": "/data/user/0/com.agy/files/models/Qwen2.5-Coder-0.5B-Q4_K_M.gguf",
   "local_url": "http://127.0.0.1:8080/v1"
 }
