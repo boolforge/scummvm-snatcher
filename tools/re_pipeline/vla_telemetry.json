@@ -1,5 +1,5 @@
 {
-  "timestamp": 1794973125.8231213,
+  "timestamp": 1794974049.6396067,
   "hardware": {
     "soc": "Samsung Exynos 2100 5G",
     "npu": "Triple-Core NPU 26 TOPS (Eden HAL 1.3)",
@@ -19,7 +19,7 @@
     "Sega CD": {
       "perception": {
         "scene": "TITLE_LOGO_TRANSITION",
-        "perception_time_ms": 7.62,
+        "perception_time_ms": 7.39,
         "target_sector": [
           0,
           0
@@ -37,7 +37,7 @@
         "clipping_detected": false,
         "acoustic_event": "ACOUSTIC_GUNSHOT_SFX",
         "description": "High-transient blaster fire / metallic impact detected.",
-        "listen_latency_ms": 20.61,
+        "listen_latency_ms": 35.16,
         "spectral_distribution": {
           "bass_ratio": 0.005,
           "voice_ratio": 0.183,
@@ -56,7 +56,7 @@
           }
         ],
         "explanation": "Title screen detected. Initiating boot sequence via [START]",
-        "timestamp": 1794973126.0570483
+        "timestamp": 1794974049.8903966
       },
       "llm_guidance": "[Pollinations.ai (Free Cloud LLM)] Prepare la interfaz del men\u00fa principal: enf\u00f3cate en inicializar el panel de opciones y cargar el atlas de niveles \u2014 es la puerta de entrada a la fase de misi\u00f3n. Aseg\u00farate de que los scripts de audio se sincronicen con la activaci\u00f3n del HUD para minimizar la latencia.",
       "status": "PASS"
@@ -64,7 +64,7 @@
     "PC Engine": {
       "perception": {
         "scene": "VIDEOPHONE_COMMUNICATION",
-        "perception_time_ms": 53.83,
+        "perception_time_ms": 53.99,
         "target_sector": [
           1,
           1
@@ -82,7 +82,7 @@
         "clipping_detected": false,
         "acoustic_event": "ACOUSTIC_GUNSHOT_SFX",
         "description": "High-transient blaster fire / metallic impact detected.",
-        "listen_latency_ms": 9.08,
+        "listen_latency_ms": 8.2,
         "spectral_distribution": {
           "bass_ratio": 0.005,
           "voice_ratio": 0.183,
@@ -92,7 +92,7 @@
       "action": {
         "platform": "PC Engine",
         "scene": "VIDEOPHONE_COMMUNICATION",
-        "reaction_time_ms": 53.85,
+        "reaction_time_ms": 54.01,
         "action_sequence": [
           {
             "type": "KEY_DOWN",
@@ -101,15 +101,15 @@
           }
         ],
         "explanation": "Default interactive prompt: confirming via [I]",
-        "timestamp": 1794973126.347221
+        "timestamp": 1794974050.1582198
       },
-      "llm_guidance": "[Qwen 2.5 Coder 0.5B (Local Exynos 2100)] Recovering the audio device.",
+      "llm_guidance": "[Qwen 2.5 Coder 0.5B (Local Exynos 2100)] Confirm via [I].",
       "status": "PASS"
     },
     "PlayStation 1": {
       "perception": {
         "scene": "COMBAT_TURBOCYCLE_3X3",
-        "perception_time_ms": 54.37,
+        "perception_time_ms": 83.04,
         "target_sector": [
           0,
           0
@@ -127,7 +127,7 @@
         "clipping_detected": false,
         "acoustic_event": "ACOUSTIC_GUNSHOT_SFX",
         "description": "High-transient blaster fire / metallic impact detected.",
-        "listen_latency_ms": 7.57,
+        "listen_latency_ms": 6.67,
         "spectral_distribution": {
           "bass_ratio": 0.005,
           "voice_ratio": 0.183,
@@ -137,7 +137,7 @@
       "action": {
         "platform": "PlayStation 1",
         "scene": "COMBAT_TURBOCYCLE_3X3",
-        "reaction_time_ms": 54.42,
+        "reaction_time_ms": 83.08,
         "action_sequence": [
           {
             "type": "KEY_DOWN",
@@ -156,15 +156,15 @@
           }
         ],
         "explanation": "Combat Target detected in sector (0, 0)! Superhuman reflex aim: UP+LEFT + FIRE [SQUARE]",
-        "timestamp": 1794973127.0843534
+        "timestamp": 1794974050.9639242
       },
-      "llm_guidance": "[Qwen 2.5 Coder 0.5B (Local Exynos 2100)] Attack",
+      "llm_guidance": "[Qwen 2.5 Coder 0.5B (Local Exynos 2100)] Use the Superhuman Reflex to aim up and left, then fire.",
       "status": "PASS"
     },
     "Sega Saturn": {
       "perception": {
         "scene": "COMBAT_TURBOCYCLE_3X3",
-        "perception_time_ms": 49.03,
+        "perception_time_ms": 76.07,
         "target_sector": [
           0,
           1
@@ -182,7 +182,7 @@
         "clipping_detected": false,
         "acoustic_event": "ACOUSTIC_GUNSHOT_SFX",
         "description": "High-transient blaster fire / metallic impact detected.",
-        "listen_latency_ms": 7.76,
+        "listen_latency_ms": 8.0,
         "spectral_distribution": {
           "bass_ratio": 0.005,
           "voice_ratio": 0.183,
@@ -192,7 +192,7 @@
       "action": {
         "platform": "Sega Saturn",
         "scene": "COMBAT_TURBOCYCLE_3X3",
-        "reaction_time_ms": 49.06,
+        "reaction_time_ms": 76.1,
         "action_sequence": [
           {
             "type": "KEY_DOWN",
@@ -206,15 +206,15 @@
           }
         ],
         "explanation": "Combat Target detected in sector (0, 1)! Superhuman reflex aim: UP + FIRE [A]",
-        "timestamp": 1794973127.3692513
+        "timestamp": 1794974052.6056368
       },
-      "llm_guidance": "[Qwen 2.5 Coder 0.5B (Local Exynos 2100)] Attack with the gun.",
+      "llm_guidance": "[Qwen 2.5 Coder 0.5B (Local Exynos 2100)] Attack",
       "status": "PASS"
     },
     "MSX2": {
       "perception": {
         "scene": "VIDEOPHONE_COMMUNICATION",
-        "perception_time_ms": 47.34,
+        "perception_time_ms": 51.28,
         "target_sector": [
           1,
           1
@@ -232,7 +232,7 @@
         "clipping_detected": false,
         "acoustic_event": "ACOUSTIC_GUNSHOT_SFX",
         "description": "High-transient blaster fire / metallic impact detected.",
-        "listen_latency_ms": 6.95,
+        "listen_latency_ms": 7.62,
         "spectral_distribution": {
           "bass_ratio": 0.005,
           "voice_ratio": 0.183,
@@ -242,7 +242,7 @@
       "action": {
         "platform": "MSX2",
         "scene": "VIDEOPHONE_COMMUNICATION",
-        "reaction_time_ms": 47.36,
+        "reaction_time_ms": 51.3,
         "action_sequence": [
           {
             "type": "KEY_DOWN",
@@ -251,15 +251,15 @@
           }
         ],
         "explanation": "Default interactive prompt: confirming via [RETURN]",
-        "timestamp": 1794973128.0546124
+        "timestamp": 1794974052.8807294
       },
-      "llm_guidance": "[Qwen 2.5 Coder 0.5B (Local Exynos 2100)] Next tactical objective: Confirming via [RETURN].",
+      "llm_guidance": "[Qwen 2.5 Coder 0.5B (Local Exynos 2100)] Next tactical objective: Confirm via [RETURN]",
       "status": "PASS"
     },
     "PC-8801": {
       "perception": {
         "scene": "COMBAT_TURBOCYCLE_3X3",
-        "perception_time_ms": 42.39,
+        "perception_time_ms": 60.33,
         "target_sector": [
           0,
           1
@@ -277,7 +277,7 @@
         "clipping_detected": false,
         "acoustic_event": "ACOUSTIC_GUNSHOT_SFX",
         "description": "High-transient blaster fire / metallic impact detected.",
-        "listen_latency_ms": 12.45,
+        "listen_latency_ms": 7.86,
         "spectral_distribution": {
           "bass_ratio": 0.005,
           "voice_ratio": 0.183,
@@ -287,7 +287,7 @@
       "action": {
         "platform": "PC-8801",
         "scene": "COMBAT_TURBOCYCLE_3X3",
-        "reaction_time_ms": 42.41,
+        "reaction_time_ms": 60.36,
         "action_sequence": [
           {
             "type": "KEY_DOWN",
@@ -301,15 +301,15 @@
           }
         ],
         "explanation": "Combat Target detected in sector (0, 1)! Superhuman reflex aim: UP + FIRE [SPACE]",
-        "timestamp": 1794973129.1047778
+        "timestamp": 1794974054.1754656
       },
-      "llm_guidance": "[Qwen 2.5 Coder 0.5B (Local Exynos 2100)] Navigate towards the target.",
+      "llm_guidance": "[Qwen 2.5 Coder 0.5B (Local Exynos 2100)] Dodge!",
       "status": "PASS"
     }
   },
   "summary": {
     "total_frames_analyzed": 6,
-    "avg_reaction_time_ms": 43.05,
+    "avg_reaction_time_ms": 56.01,
     "targets_neutralized": 6,
     "all_systems_go": true
   }
