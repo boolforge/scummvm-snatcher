@@ -20,6 +20,7 @@
  */
 
 #include "snatcher/sound_device.h"
+#include "snatcher/generated/pce_bank16_scene_map.h"
 #include "snatcher/resource.h"
 #include "snatcher/util.h"
 #include "backends/audiocd/audiocd.h"

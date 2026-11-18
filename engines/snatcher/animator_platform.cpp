@@ -20,6 +20,8 @@
  */
 
 #include "snatcher/animator_platform.h"
+#include "snatcher/generated/msx2_v9938_palette_table.h"
+#include "snatcher/generated/ps1_hardware_entry_map.h"
 #include "snatcher/palette.h"
 #include "snatcher/sound.h"
 #include "snatcher/transition.h"
@@ -489,10 +491,7 @@ void Animator_MSX2::blitScreen8Bitmap(const uint8 *screen8Data, int dstX, int ds
 			if (screenX < 0 || screenX >= _width)
 				continue;
 			uint8 b = screen8Data[y * w + x];
-			uint8 red = ((b >> 2) & 7) * 255 / 7;
-			uint8 green = ((b >> 5) & 7) * 255 / 7;
-			uint8 blue = (b & 3) * 255 / 3;
-			uint32 col = _pixelFormat.RGBToColor(red, green, blue);
+			uint32 col = _pixelFormat.RGBToColor(kMSX2Screen8Colors[b][0], kMSX2Screen8Colors[b][1], kMSX2Screen8Colors[b][2]);
 
 			uint8 *dst = _framebuffer + (screenY * _width + screenX) * bpp;
 			if (bpp == 2)

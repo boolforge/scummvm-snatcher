@@ -20,6 +20,7 @@
  */
 
 #include "snatcher/sound_device.h"
+#include "snatcher/generated/pc88_hardware_map.h"
 #include "snatcher/resource.h"
 #include "audio/mixer.h"
 #include "common/stream.h"

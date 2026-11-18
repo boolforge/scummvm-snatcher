@@ -20,6 +20,7 @@
  */
 
 #include "snatcher/sound_device.h"
+#include "snatcher/generated/ps1_hardware_entry_map.h"
 #include "snatcher/resource.h"
 #include "snatcher/util.h"
 #include "backends/audiocd/audiocd.h"

@@ -20,6 +20,7 @@
  */
 
 #include "snatcher/sound_device.h"
+#include "snatcher/generated/msx2_v9938_palette_table.h"
 #include "snatcher/resource.h"
 #include "audio/mixer.h"
 #include "audio/softsynth/ym2149.h"
