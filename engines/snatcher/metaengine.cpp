@@ -19,6 +19,8 @@
 *
 */
 
+#define FORBIDDEN_SYMBOL_ALLOW_ALL
+
 #include "snatcher/detection.h"
 #include "snatcher/fantranslations.h"
 #include "snatcher/saveload.h"
@@ -84,6 +86,7 @@ bool Snatcher::SnatcherEngine::hasFeature(EngineFeature f) const {
 }
 
 Common::Error SnatcherMetaEngine::createInstance(OSystem *syst, Engine **engine, const SnatcherGameDescription *desc) const {
+	debug(1, "[SnatcherMetaEngine] createInstance");
 	const SnatcherGameDescription *gd = (const SnatcherGameDescription *)desc;
 	Snatcher::GameDescription dsc = gd->ex_desc;
 

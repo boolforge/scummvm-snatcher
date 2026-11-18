@@ -20,6 +20,8 @@
 */
 
 
+#define FORBIDDEN_SYMBOL_ALLOW_ALL
+
 #include "common/config-manager.h"
 #include "common/translation.h"
 #include "engines/advancedDetector.h"
@@ -131,6 +133,7 @@ DetectedGames SnatcherMetaEngineDetection::detectGames(const Common::FSList &fsl
 }
 
 Common::Error SnatcherMetaEngineDetection::identifyGame(DetectedGame &game, const void **descriptor) {
+	debug(1, "[SnatcherDetection] identifyGame path=%s", ConfMan.get("path").c_str());
 	Common::Language selectedlang = Common::UNK_LANG;
 	Common::Language defaultLang = Common::UNK_LANG;
 	bool supportedFanLang = false;

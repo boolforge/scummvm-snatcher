@@ -19,6 +19,8 @@
 *
 */
 
+#define FORBIDDEN_SYMBOL_ALLOW_ALL
+
 #include "snatcher/action.h"
 #include "snatcher/fantranslations.h"
 #include "snatcher/graphics.h"
@@ -33,6 +35,7 @@
 #include "snatcher/text.h"
 #include "snatcher/ui.h"
 #include "snatcher/util.h"
+#include "snatcher/vla_headless.h"
 #include "common/config-manager.h"
 #include "common/endian.h"
 #include "common/events.h"
@@ -74,23 +77,31 @@ SnatcherEngine::~SnatcherEngine() {
 }
 
 Common::Error SnatcherEngine::run() {
+	VlaHeadlessManager::instance().init();
+
+	warning("[SnatcherEngine] Starting initResource()...");
 	if (!initResource())
 		return Common::Error(Common::kReadingFailed);
 
+	warning("[SnatcherEngine] Starting initSound()...");
 	if (!initSound(_system->getMixer(),	_game.platform, _game.soundOptions))
 		return Common::Error(Common::kAudioDeviceInitFailed);
 
+	warning("[SnatcherEngine] Starting initGfx()...");
 	if (!initGfx(_game.platform, SNATCHER_GFXMODE_8BIT))
 		return Common::Error(Common::kUnsupportedColorMode);
 
+	warning("[SnatcherEngine] Starting initSaveLoad()...");
 	if (!initSaveLoad())
 		return Common::Error(Common::kUnknownError);
 
+	warning("[SnatcherEngine] Starting initScriptEngine()...");
 	if (!initScriptEngine())
 		return Common::Error(Common::kUnknownError);
 
+	warning("[SnatcherEngine] Entering main execution loop...");
 	bool result = true;
-	while (result && !shouldQuit()) {
+	while (result && !shouldQuit() && !VlaHeadlessManager::instance().shouldQuit()) {
 		reset();
 		result = start();
 	}
@@ -225,7 +236,7 @@ void SnatcherEngine::playBootLogoAnimation(const GameState &state) {
 	if (platform() == Common::kPlatformSegaCD)
 		_snd->fmSendCommand(0xF2, -1);
 
-	while (curSeqState != -1 && !shouldQuit()) {
+	while (curSeqState != -1 && !shouldQuit() && !VlaHeadlessManager::instance().shouldQuit()) {
 		frameTimer += _frameLen;
 		uint32 nextFrame = _system->getMillis() + (frameTimer >> 14);
 		frameTimer &= 0x3FFF;
@@ -258,7 +269,7 @@ bool SnatcherEngine::start() {
 	int16 countTo5 = 0;
 	int16 runspeed = 0;
 
-	while (!shouldQuit() && _reset != 1) {
+	while (!shouldQuit() && _reset != 1 && !VlaHeadlessManager::instance().shouldQuit()) {
 		frameTimer += _frameLen;
 		uint32 nextFrame = _system->getMillis() + (frameTimer >> 14);
 		frameTimer &= 0x3FFF;
@@ -333,6 +344,8 @@ bool SnatcherEngine::start() {
 }
 
 void SnatcherEngine::delayUntil(uint32 end) {
+	if (VlaHeadlessManager::instance().isTurbo())
+		return;
 	uint32 cur = _system->getMillis();
 	_gfxInfo.dropFrames = cur > end ? ((cur - end) << 14) / _frameLen : 0;
 	if (cur < end)
@@ -442,6 +455,26 @@ void SnatcherEngine::checkEvents(const GameState &state) {
 					_input.sustainedControllerFlagsRemapped &= ~(k.internalEvent & ~0x70);
 				}
 			}
+		}
+	}
+
+	if (VlaHeadlessManager::instance().isActive()) {
+		int mx = 0, my = 0;
+		uint32 vlaIn = VlaHeadlessManager::instance().readInput(mx, my);
+		if (vlaIn) {
+			_input.singleFrameControllerFlags |= (vlaIn & 0x3FF);
+			_input.sustainedControllerFlags |= (vlaIn & 0x3FF);
+			for (int f = 0; f < 3; ++f) {
+				if (vlaIn & ((1 << f) << 4))
+					_input.singleFrameControllerFlagsRemapped |= (1 << _scdKeyConfigs[state.conf.controllerSetup][f]);
+			}
+			_input.singleFrameControllerFlagsRemapped |= (vlaIn & ~0x70);
+			_input.sustainedControllerFlagsRemapped |= _input.singleFrameControllerFlagsRemapped;
+			if (vlaIn & 0x100) {
+				_input.lightGunPos.x = mx;
+				_input.lightGunPos.y = my;
+			}
+			VlaHeadlessManager::instance().clearInput(vlaIn);
 		}
 	}
 

@@ -20,6 +20,8 @@
 */
 
 
+#define FORBIDDEN_SYMBOL_ALLOW_ALL
+
 #include "snatcher/graphics.h"
 #include "snatcher/palette.h"
 #include "snatcher/animator.h"
@@ -31,6 +33,7 @@
 #include "common/stream.h"
 #include "common/system.h"
 #include "graphics/pixelformat.h"
+#include "snatcher/vla_headless.h"
 
 namespace Snatcher {
 
@@ -38,6 +41,7 @@ GraphicsEngine::GraphicsEngine(const Graphics::PixelFormat *pxf, OSystem *system
 	_system(system), _platform(platform), _state(vmstate), _animator(nullptr), _text(nullptr), _dataMode(0), _screen(nullptr), _bpp(pxf ? pxf->bytesPerPixel : 1), _verbAreaType(0), _animSaveLoadData(nullptr),
 		_animSaveLoadDataExt(), _trsNeedsUpdate(false) {
 	assert(system);
+	VlaHeadlessManager::instance().init();
 	_palette = Palette::create(pxf, _system->getPaletteManager(), platform, _state);
 	assert(_palette);
 	_trs = TransitionManager::create(platform, _state);
@@ -195,6 +199,10 @@ void GraphicsEngine::nextFrame() {
 
 	_system->copyRectToScreen(_screen, _animator->realScreenWidth() * _bpp, 0, 0, _animator->realScreenWidth(), _animator->realScreenHeight());
 	_system->updateScreen();
+
+	if (VlaHeadlessManager::instance().isActive()) {
+		VlaHeadlessManager::instance().postFrame(_screen, _animator->realScreenWidth(), _animator->realScreenHeight(), _pxf);
+	}
 
 	_state.nextFrame();
 }
@@ -517,6 +525,11 @@ int GraphicsEngine::displayBootLogoFrame(int frameNo) {
 	int res = _bootLogo ? _bootLogo->drawFrame(_screen, _animator->realScreenWidth(), _animator->realScreenHeight(), _pxf, _system, frameNo) : _animator->drawBootLogoFrame(_screen, frameNo);
 	_system->copyRectToScreen(_screen, _animator->realScreenWidth() * _bpp, 0, 0, _animator->realScreenWidth(), _animator->realScreenHeight());
 	_system->updateScreen();
+
+	if (VlaHeadlessManager::instance().isActive()) {
+		VlaHeadlessManager::instance().postFrame(_screen, _animator->realScreenWidth(), _animator->realScreenHeight(), _pxf);
+	}
+
 	return res;
 }
 
