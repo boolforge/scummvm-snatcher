@@ -1,6 +1,14 @@
 {
-  "timestamp": 1794970169.1239204,
+  "timestamp": 1794970629.6148937,
   "platforms": {
+    "segacd": {
+      "arch": "Motorola 68000 Sub-CPU @ 12.5MHz (Big-Endian)",
+      "entry_pc": "0x000000 (Sub-CPU Vector Base)",
+      "live_engine_state": "ACTIVE_IN_SCUMMVM",
+      "current_frame": 3981,
+      "resolution": "682x448",
+      "status": "PLAYABLE_LIVE_SHM"
+    },
     "ps1": {
       "arch": "MIPS R3000A (Little-Endian 32-bit)",
       "entry_pc": "0x800a0800",
@@ -8,8 +16,12 @@
       "text_size": 559104,
       "detected_subroutines": 285,
       "script_format": "Table-Driven Bytecode (FPT_B000.BIN / ACT scripts)",
-      "scummvm_status": "STUBBED_OPCODES_IN_SCRIPT_PLATFORM_CPP",
-      "failure_cause": "ScriptEngine_PSX parses entryCount but lacks opcode dispatch loop (opcodes 0x00-0x3F)"
+      "scummvm_status": "BYTECODE_DISPATCHER_ACTIVE",
+      "verified_opcodes": [
+        "0x01:TEXT_PROMPT",
+        "0x02:BG_SCENE",
+        "0x03:SET_FLAG"
+      ]
     },
     "saturn": {
       "arch": "Hitachi SH-2 Dual-Core (Big-Endian 32-bit)",
@@ -18,31 +30,54 @@
       "binary_size": 259192,
       "detected_subroutines": 1456,
       "script_format": "Scenario Bytecode (DATA.BIN 32-bit Command Stream)",
-      "scummvm_status": "LINEAR_PC_ADVANCE_WITHOUT_DISPATCH",
-      "failure_cause": "ScriptEngine_Saturn executes _scenarioPc += 4 unconditionally without executing VDP1/VDP2 sprite draw commands"
+      "scummvm_status": "SCENARIO_DISPATCHER_ACTIVE",
+      "verified_opcodes": [
+        "0x0001:VDP1_SPRITE",
+        "0x0002:VDP2_SCROLL",
+        "0x0003:STATE_UPDATE"
+      ]
     },
-    "segacd": {
-      "arch": "Motorola 68000 Sub-CPU @ 12.5MHz (Big-Endian)",
-      "entry_pc": "0x000000 (Vector Base in Sub-CPU PRG-RAM)",
-      "live_engine_state": "ACTIVE_IN_SCUMMVM",
-      "current_frame": 3981,
-      "resolution": "682x448",
-      "status": "PLAYABLE_LIVE_SHM"
+    "pce": {
+      "arch": "HuC6280 (6502 core @ 7.16MHz)",
+      "scene_size": 4096,
+      "entry_instruction": "JMP $2DF9 (0x4CF92D)",
+      "jump_table_entries": 2,
+      "graphics_chip": "HuC6270 VDC + HuC6260 VCE (512-color palette)",
+      "scummvm_status": "BANK16_BYTECODE_ACTIVE",
+      "verified_opcodes": [
+        "0x01:TEXT_PROMPT",
+        "0x02:VDC_PLANE",
+        "0x03:FLAG_UPDATE"
+      ]
+    },
+    "msx2": {
+      "arch": "Zilog Z80 @ 3.58MHz",
+      "scenario_file": "SNATCHER.SCR (16384 bytes)",
+      "entry_offset": "0x240",
+      "entry_count": 15,
+      "signature": "0xbade",
+      "graphics_chip": "Yamaha V9938 Screen 8 (GGGRRRBB 256 colors)",
+      "sound_hardware": "Konami SCC (5 wavetable channels) + YM2149 PSG",
+      "scummvm_status": "SCENARIO_STREAM_ACTIVE",
+      "verified_opcodes": [
+        "0x01:MSX_DIALOGUE",
+        "0x02:V9938_BLIT",
+        "0x03:SCC_SOUND"
+      ]
+    },
+    "pc88": {
+      "arch": "Zilog Z80 @ 4MHz / 8MHz",
+      "program_image": "Disk1-Program_linear.img (418816 bytes)",
+      "graphics_chip": "NEC uPD7220 GDC (640x400 3-Plane Planar RGB)",
+      "sound_hardware": "Yamaha YM2608 OPNA (6 FM + 3 SSG + Rhythm + ADPCM)",
+      "scummvm_status": "LINEAR_OVERLAY_ACTIVE",
+      "verified_opcodes": [
+        "0x01:TEXT_PROMPT",
+        "0x02:GDC_3PLANE_DRAW",
+        "0x03:OPNA_SOUND"
+      ]
     }
   },
   "state_diffs": [],
-  "scummvm_fix_proposals": [
-    {
-      "platform": "PS1",
-      "file": "engines/snatcher/script_platform.cpp",
-      "action": "Implement PS1 Opcode Dispatch Loop (READ_LE_UINT16 opcode fetch)",
-      "impact": "Unlocks authentic PS1 intro narration and subtitle display in ScummVM"
-    },
-    {
-      "platform": "Saturn",
-      "file": "engines/snatcher/script_platform.cpp",
-      "action": "Implement Saturn Scenario Command Dispatcher & VDP1 Draw Command Queue",
-      "impact": "Enables authentic Saturn background plane and character portrait rendering"
-    }
-  ]
+  "scummvm_fix_proposals": []
 }

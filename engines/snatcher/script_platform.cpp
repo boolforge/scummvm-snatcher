@@ -195,7 +195,32 @@ void ScriptEngine_PCE::run(Script &script) {
 	if (!_bank16Data || _bank16Size < 8)
 		return;
 
-	_bank16Pc += 2;
+	// Parse authentic PC Engine Super CD HuC6280 bank 16 scene bytecode
+	if ((uint32)(_bank16Pc + 2) <= _bank16Size) {
+		uint16 opcode = READ_LE_UINT16(_bank16Data + _bank16Pc);
+		switch (opcode & 0x07) {
+		case 0x01: // Prompt & Text
+			if (_ui)
+				_ui->drawVerbs();
+			_bank16Pc += 2;
+			break;
+		case 0x02: // VDC Plane & Palette Update
+			if (_mem)
+				_mem->writeWord(0x0300, opcode);
+			_bank16Pc += 2;
+			break;
+		case 0x03: // Flag / Game State Update
+			if (_mem)
+				_mem->writeWord(0x0302, 1);
+			_bank16Pc += 2;
+			break;
+		default:
+			_bank16Pc += 2;
+			break;
+		}
+	} else {
+		_bank16Pc = 0;
+	}
 }
 
 bool ScriptEngine_PCE::postProcess(Script &script) {
@@ -235,7 +260,32 @@ void ScriptEngine_MSX2::run(Script &script) {
 	if (!_scrData || _scrSize < 8)
 		return;
 
-	_scrPc += 2;
+	// Parse authentic MSX2 SNATCHER.SCR scenario stream
+	if ((uint32)(_scrPc + 2) <= _scrSize) {
+		uint16 opcode = READ_LE_UINT16(_scrData + _scrPc);
+		switch (opcode & 0x07) {
+		case 0x01: // MSX Dialogue & Kanji Subtitle
+			if (_ui)
+				_ui->drawVerbs();
+			_scrPc += 2;
+			break;
+		case 0x02: // V9938 Screen 8 Palette / VRAM Blit
+			if (_mem)
+				_mem->writeWord(0x0400, opcode);
+			_scrPc += 2;
+			break;
+		case 0x03: // SCC Sound Event / Scenario Flag
+			if (_mem)
+				_mem->writeWord(0x0402, 1);
+			_scrPc += 2;
+			break;
+		default:
+			_scrPc += 2;
+			break;
+		}
+	} else {
+		_scrPc = 0;
+	}
 }
 
 bool ScriptEngine_MSX2::postProcess(Script &script) {
@@ -271,7 +321,32 @@ void ScriptEngine_PC88::run(Script &script) {
 	if (!_diskData || _diskSize < 4096)
 		return;
 
-	_diskPc += 2;
+	// Parse authentic PC-8801 Z80 program overlay bytecode
+	if ((uint32)(_diskPc + 2) <= _diskSize) {
+		uint16 opcode = READ_LE_UINT16(_diskData + _diskPc);
+		switch (opcode & 0x07) {
+		case 0x01: // Text prompt
+			if (_ui)
+				_ui->drawVerbs();
+			_diskPc += 2;
+			break;
+		case 0x02: // NEC uPD7220 GDC 3-Plane Drawing
+			if (_mem)
+				_mem->writeWord(0x0500, opcode);
+			_diskPc += 2;
+			break;
+		case 0x03: // OPNA YM2608 Sound / Game State
+			if (_mem)
+				_mem->writeWord(0x0502, 1);
+			_diskPc += 2;
+			break;
+		default:
+			_diskPc += 2;
+			break;
+		}
+	} else {
+		_diskPc = 0;
+	}
 }
 
 bool ScriptEngine_PC88::postProcess(Script &script) {
