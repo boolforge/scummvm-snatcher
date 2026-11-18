@@ -517,12 +517,62 @@ def run_retro_hooker():
                 log("RETRO-FRIDA", line.strip())
 
 # =============================================================================
-# 16. RECURSIVE INTROSPECTION & SELF-IMPROVEMENT
+# 0. ELEVATED SYSTEM GOVERNOR & HARDWARE TUNING (SHIZUKU / ROOT)
+# =============================================================================
+def boost_system_privileges():
+    log_banner("SYSTEM TUNING: ELEVATED HARDWARE OPTIMIZATION & ROOT GOVERNOR")
+    try:
+        rish_check = subprocess.run(["rish", "-c", "id"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=2)
+        if "uid=0" in rish_check.stdout or "uid=2000" in rish_check.stdout:
+            my_pid = os.getpid()
+            subprocess.run(["rish", "-c", f"renice -n -10 -p {my_pid}"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            freq = subprocess.run(["rish", "-c", "cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq 2>/dev/null"], stdout=subprocess.PIPE, text=True).stdout.strip()
+            mem = subprocess.run(["rish", "-c", "grep MemAvailable /proc/meminfo"], stdout=subprocess.PIPE, text=True).stdout.strip()
+            log("ROOT-BOOST", f"[+] Magisk Root active! PID {my_pid} reniced to -10 (High Priority)")
+            log("ROOT-BOOST", f"[+] CPU0 Scaling: {freq} kHz | {mem}")
+            return True
+    except Exception as e:
+        log("ROOT-BOOST", f"[-] Elevated boost fallback: {e}")
+    return False
+
+# =============================================================================
+# 16. ZERO-COPY VLA HEADLESS PLAYTEST & REAL-TIME SHM ADVANCE
+# =============================================================================
+def run_vla_agent():
+    log_banner("CYCLE PHASE 16: ZERO-COPY VLA HEADLESS PLAYTEST & SHM ADVANCE")
+    vla_script = os.path.join(TOOLS_DIR, "snatcher_vla_agent.py")
+    if os.path.exists(vla_script):
+        cmd = [sys.executable, vla_script, "--once"]
+        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        for line in proc.stdout.split("\n"):
+            if "[+]" in line or "FRAME" in line:
+                log("VLA-SHM", line.strip())
+
+# =============================================================================
+# 17. LOCAL & CLOUD PARASITE LLM INFERENCE BRIDGE
+# =============================================================================
+def query_llm(prompt, model_type="local"):
+    log_banner(f"LLM QUERY: {model_type.upper()}")
+    router_script = os.path.join(TOOLS_DIR, "parasite_llm_router.py")
+    if os.path.exists(router_script):
+        try:
+            sys.path.insert(0, TOOLS_DIR)
+            import parasite_llm_router
+            res = parasite_llm_router.query_parasite_router(prompt, preferred_tier=0 if model_type == "local" else 1)
+            log("LLM-RESP", res[:300] + "..." if len(res) > 300 else res)
+            return res
+        except Exception as e:
+            log("LLM-ERR", f"Error in LLM query: {e}")
+    return "Error in LLM query"
+
+# =============================================================================
+# 18. RECURSIVE INTROSPECTION & SELF-IMPROVEMENT
 # =============================================================================
 def perform_cycle(state):
     cycle_start = time.time()
     log_banner(f"STARTING RECURSIVE CYCLE #{state.data['cycle_count'] + 1}")
 
+    boost_system_privileges()
     audit_all_platforms(state)
     run_static_analysis()
     run_angr_recovery(state)
@@ -538,6 +588,7 @@ def perform_cycle(state):
     run_retro_instrumenter()
     run_symbolic_tracer()
     run_retro_hooker()
+    run_vla_agent()
 
     duration = time.time() - cycle_start
     state.record_cycle(duration, build_ok)
@@ -550,11 +601,15 @@ def perform_cycle(state):
 # MASTER CLI DISPATCHER
 # =============================================================================
 def main():
-    parser = argparse.ArgumentParser(description="Snatcher MegaDaemon: Active Recursive RE Engine")
+    parser = argparse.ArgumentParser(description="Snatcher MegaDaemon: Omnipotent Unified Reverse Engineering Engine")
     parser.add_argument("--once", action="store_true", help="Run a single deep recursive cycle")
     parser.add_argument("--loop", action="store_true", help="Run perpetual autonomous self-improving loop")
     parser.add_argument("--interval", type=int, default=60, help="Interval in seconds between cycles in loop mode")
     parser.add_argument("--status", action="store_true", help="Display current MegaDaemon telemetry")
+    parser.add_argument("--boost", action="store_true", help="Boost system priority with root / rish governor")
+    parser.add_argument("--phase", type=str, help="Execute a specific phase individually (audit, angr, ghidra, unicorn, synth, build, visual, weaponized, multi, retro, symbolic, hooker, vla)")
+    parser.add_argument("--chat", type=str, help="Query local / parasite LLM directly from CLI")
+    parser.add_argument("--model", type=str, default="local", choices=["local", "cloud", "hybrid"], help="Select LLM model provider")
     args = parser.parse_args()
 
     state = MegaDaemonState(STATE_FILE)
@@ -562,6 +617,41 @@ def main():
     if args.status:
         log_banner("SNATCHER MEGAR-DAEMON TELEMETRY & STATUS")
         print(json.dumps(state.data, indent=2))
+        return
+
+    if args.boost:
+        boost_system_privileges()
+        return
+
+    if args.chat:
+        resp = query_llm(args.chat, args.model)
+        print("\n" + "=" * 80)
+        print(f"  PARASITE CORTEX [{args.model.upper()}]:\n{resp}")
+        print("=" * 80)
+        return
+
+    if args.phase:
+        p = args.phase.lower()
+        log_banner(f"EXECUTING SELECTIVE PHASE: {p.upper()}")
+        if p == "audit": audit_all_platforms(state)
+        elif p == "static" or p == "disasm": run_static_analysis()
+        elif p == "angr": run_angr_recovery(state)
+        elif p == "ghidra": run_ghidra_decompilation(state)
+        elif p == "unicorn": run_unicorn_emulation(state)
+        elif p == "assets": extract_authentic_assets(state)
+        elif p == "synth": synthesize_headers()
+        elif p == "build": verify_scummvm_build()
+        elif p == "llm": run_llm_enrichment()
+        elif p == "visual": run_visual_qa()
+        elif p == "weaponized": run_weaponized_debugger()
+        elif p == "multi": run_multiplatform_harness()
+        elif p == "retro": run_retro_instrumenter()
+        elif p == "symbolic": run_symbolic_tracer()
+        elif p == "hooker": run_retro_hooker()
+        elif p == "vla": run_vla_agent()
+        elif p == "boost": boost_system_privileges()
+        else:
+            log("CLI", f"Unknown phase '{p}'. Options: audit, angr, ghidra, unicorn, synth, build, visual, weaponized, multi, retro, symbolic, hooker, vla, boost")
         return
 
     if args.loop:

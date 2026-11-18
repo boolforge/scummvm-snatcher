@@ -141,6 +141,23 @@ class ParasiteLLMRouter:
         prompt = f"Analiza esta traza de error de ScummVM Snatcher y sugiere el fix en C++ en 2 oraciones:\n{crash_log[:500]}"
         return self.query(prompt, system_prompt="Eres un compilador y depurador experto de ScummVM y C++11.")
 
+_GLOBAL_ROUTER = None
+
+def get_router():
+    global _GLOBAL_ROUTER
+    if _GLOBAL_ROUTER is None:
+        _GLOBAL_ROUTER = ParasiteLLMRouter()
+    return _GLOBAL_ROUTER
+
+def query_parasite_router(prompt, system_prompt=None, preferred_tier=0):
+    router = get_router()
+    if preferred_tier == 0:
+        res = router._query_local_qwen(prompt, system_prompt or "You are the cybernetic Snatcher VLA intelligence. Provide concise answers in Spanish.", 128, 0.3)
+        if res:
+            return res
+    res = router.query(prompt, system_prompt=system_prompt)
+    return res.get("response", "Sin respuesta")
+
 if __name__ == "__main__":
     print("=" * 70)
     print("  SNATCHER PARASITIC LLM ROUTER TEST")
