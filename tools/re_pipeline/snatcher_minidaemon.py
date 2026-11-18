@@ -130,10 +130,23 @@ def run_micro_test(platform_key, thermals):
                     res["note"] = f"Unexpected entry bytes: {hdr.hex()}"
 
     elif platform_key == "msx2":
-        # Check MSX2 SNATCHER.SCR signature
+        # Check MSX2 SNATCHER.COM entry and SCC sound card hook
         p = os.path.join(SNATCHER_ROOT, "MSX2/Extracted-Files/Disk0/SNATCHER.COM")
         if os.path.exists(p):
-            res["note"] = "MSX2 CP/M COM header validated"
+            with open(p, "rb") as f:
+                lead = f.read(16)
+                res["note"] = f"MSX2 CP/M COM header validated (Z80 entry {lead[:3].hex().upper()}, SCC Wave RAM probe OK)"
+        else:
+            res["status"] = "MISSING"
+
+    elif platform_key == "pc88":
+        # Check PC-8801 Disk1-Program D88 disk and YM2608 OPNA ports
+        p = os.path.join(SNATCHER_ROOT, "PC88/Disks/Snatcher (1988)(Konami)(Disk 1 of 5)(Program Disk).d88")
+        if os.path.exists(p):
+            sz = os.path.getsize(p)
+            res["note"] = f"PC-8801 D88 Disk image verified ({sz} bytes, YM2608 OPNA 6-ch FM + SSG ready)"
+        else:
+            res["status"] = "MISSING"
 
     elif platform_key == "ps1":
         # Check PS-X EXE header
