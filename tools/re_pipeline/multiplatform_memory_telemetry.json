@@ -1,11 +1,11 @@
 {
-  "timestamp": 1794974641.7498145,
+  "timestamp": 1794978576.3507793,
   "platforms": {
     "segacd": {
       "arch": "Motorola 68000 Sub-CPU @ 12.5MHz (Big-Endian)",
       "entry_pc": "0x000000 (Sub-CPU Vector Base)",
       "live_engine_state": "ACTIVE_IN_SCUMMVM",
-      "current_frame": 6927,
+      "current_frame": 13801,
       "resolution": "682x448",
       "status": "PLAYABLE_LIVE_SHM"
     },

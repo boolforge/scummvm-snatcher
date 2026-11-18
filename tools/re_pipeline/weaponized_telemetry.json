@@ -1,16 +1,16 @@
 {
-  "timestamp": 1794974640.579872,
+  "timestamp": 1794978575.1273525,
   "target": "snatcher-sega",
   "shm_active": true,
-  "engine_frame": 6927,
+  "engine_frame": 13801,
   "bus_metrics": {
     "width": 682,
     "height": 448,
     "bpp": 3,
     "input_register": "0x0",
     "audio_ring_fill": 0.0,
-    "frame_latency_ms": 555170.0,
-    "turbo_effective_fps": 0.9
+    "frame_latency_ms": 592101.6,
+    "turbo_effective_fps": 1.2
   },
   "differential_anomalies": [
     {
@@ -40,11 +40,11 @@
   ],
   "gdb_traces": [
     "Symbols from \"/data/user/0/com.agy/files/scummvm/scummvm\".",
-    "Symbol \"Snatcher::SnatcherEngine::run()\" is a function at address 0x7bdd54."
+    "Symbol \"Snatcher::SnatcherEngine::run()\" is a function at address 0x7bdd4c."
   ],
   "cycle_latency": {
-    "total_audit_time_ms": 1031.99,
-    "frequency_hz": 1.0
+    "total_audit_time_ms": 1082.94,
+    "frequency_hz": 0.9
   },
   "ai_bug_fixes": [
     {
