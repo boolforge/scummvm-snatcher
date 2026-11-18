@@ -452,7 +452,20 @@ def run_visual_qa():
                 log("VISUAL-QA", line.strip())
 
 # =============================================================================
-# 11. RECURSIVE INTROSPECTION & SELF-IMPROVEMENT
+# 11. WEAPONIZED DIFFERENTIAL HARDWARE DEBUGGER
+# =============================================================================
+def run_weaponized_debugger():
+    log_banner("CYCLE PHASE 11: WEAPONIZED DIFFERENTIAL HARDWARE DEBUGGER")
+    debugger_script = os.path.join(TOOLS_DIR, "snatcher_weaponized_debugger.py")
+    if os.path.exists(debugger_script):
+        cmd = [sys.executable, debugger_script]
+        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        for line in proc.stdout.split("\n"):
+            if "[+]" in line or "[-]" in line or "Anomalies" in line:
+                log("WEAPONIZED-DBG", line.strip())
+
+# =============================================================================
+# 12. RECURSIVE INTROSPECTION & SELF-IMPROVEMENT
 # =============================================================================
 def perform_cycle(state):
     cycle_start = time.time()
@@ -468,6 +481,7 @@ def perform_cycle(state):
     run_llm_enrichment()
     build_ok = verify_scummvm_build()
     run_visual_qa()
+    run_weaponized_debugger()
 
     duration = time.time() - cycle_start
     state.record_cycle(duration, build_ok)

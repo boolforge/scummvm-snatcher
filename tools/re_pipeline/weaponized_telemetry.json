@@ -1,0 +1,57 @@
+{
+  "timestamp": 1794968441.0464172,
+  "target": "snatcher-sega",
+  "shm_active": true,
+  "engine_frame": 2017,
+  "bus_metrics": {
+    "width": 682,
+    "height": 448,
+    "bpp": 3,
+    "input_register": "0x0",
+    "audio_ring_fill": 0.0,
+    "frame_latency_ms": 1364828.29,
+    "turbo_effective_fps": 1.4
+  },
+  "differential_anomalies": [
+    {
+      "subsystem": "WORD_RAM_BANK_TIMING",
+      "address": "0xa12003",
+      "expected": "4 cycles latency",
+      "detected": "0 cycles (Instantaneous zero-wait)",
+      "severity": "WARNING",
+      "impact": "Potential race condition in video playback decompression"
+    },
+    {
+      "subsystem": "RICOH_RF5C164_PCM",
+      "address": "0xFF0000 (Sound RAM Ring)",
+      "expected": "> 15% buffer margin",
+      "detected": "0.0% buffer remaining",
+      "severity": "HIGH",
+      "impact": "PCM voice clipping or audio stutter in Gillian dialogue"
+    },
+    {
+      "subsystem": "ENDIANNESS_CONVERSION",
+      "address": "ScummVM Snatcher Script Memory",
+      "expected": "Strict SWAP16/SWAP32 macros on script pointers",
+      "detected": "100% Big-Endian Safe in C++ ScummSys layer",
+      "severity": "VERIFIED_PASS",
+      "impact": "Zero unaligned address traps"
+    }
+  ],
+  "gdb_traces": [
+    "Symbols from \"/data/user/0/com.agy/files/scummvm/scummvm\".",
+    "Symbol \"Snatcher::SnatcherEngine::run()\" is a function at address 0x7bdd44."
+  ],
+  "cycle_latency": {
+    "total_audit_time_ms": 6447.56,
+    "frequency_hz": 0.2
+  },
+  "ai_bug_fixes": [
+    {
+      "bug": "WORD_RAM_BANK_TIMING",
+      "provider": "Pollinations.ai (Free Cloud LLM)",
+      "cost": "$0.00",
+      "fix_proposal": "//engine/snatcher/snatcher.cpp \u2013 force 4\u2011cycle latency on WORD_RAM_BANK_TIMING  \n```cpp\n// before core WB access\nwordRAMBankTimingCounter = 4;   // bring latency back to expected 4 cycles\n```"
+    }
+  ]
+}

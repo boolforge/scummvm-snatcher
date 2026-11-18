@@ -52,6 +52,13 @@ import argparse
 import subprocess
 from urllib import request
 from snatcher_headless_driver import HeadlessDriver
+try:
+    from parasite_llm_router import ParasiteLLMRouter
+    HAVE_PARASITE = True
+except ImportError:
+    HAVE_PARASITE = False
+
+GLOBAL_PARASITE_ROUTER = ParasiteLLMRouter() if HAVE_PARASITE else None
 
 SCUMMVM_DIR = "/data/user/0/com.agy/files/scummvm"
 TOOLS_DIR = os.path.join(SCUMMVM_DIR, "tools/re_pipeline")
@@ -324,6 +331,26 @@ class AudioEngine:
 
         dt_ms = (time.perf_counter() - t0) * 1000.0
 
+        semantic_analysis = None
+        if GLOBAL_PARASITE_ROUTER and ((voice_energy / total_energy) > 0.40 or event == "ACOUSTIC_VIDEOPHONE_RING"):
+            try:
+                res = GLOBAL_PARASITE_ROUTER.analyze_audio_dialogue(
+                    event,
+                    {
+                        "bass_ratio": round(bass_energy / total_energy, 3),
+                        "voice_ratio": round(voice_energy / total_energy, 3),
+                        "treble_ratio": round(treble_energy / total_energy, 3)
+                    },
+                    "Act 1 Investigation"
+                )
+                semantic_analysis = {
+                    "provider": res["provider"],
+                    "cost": res["cost"],
+                    "analysis": res["response"]
+                }
+            except Exception:
+                pass
+
         return {
             "track": "live_shm_audio_stream.pcm",
             "framerate": framerate,
@@ -332,6 +359,7 @@ class AudioEngine:
             "clipping_detected": bool(peak >= 32760),
             "acoustic_event": event,
             "description": desc,
+            "semantic_dialogue": semantic_analysis,
             "listen_latency_ms": round(dt_ms, 2),
             "spectral_distribution": {
                 "bass_ratio": round(bass_energy / total_energy, 3),
@@ -512,30 +540,18 @@ class ActionEngine:
         return record
 
 # ---------------------------------------------------------------------------
-# CEREBRO LOCAL: LOCAL LLM SEMANTIC POLICY (QWEN 2.5 CODER 0.5B ON EXYNOS 2100)
+# CEREBRO PARASITARIO: ZERO-COST LOCAL & CLOUD COGNITIVE POLICY
 # ---------------------------------------------------------------------------
 def query_local_llm(prompt_text):
-    """Zero-cost local cognitive query to Qwen 2.5 Coder on llama-server."""
-    payload = {
-        "model": "qwen2.5-coder",
-        "messages": [
-            {"role": "system", "content": "You are the local Snatcher VLA playtesting brain running on Exynos 2100. Provide concise, tactical decisions in 1 sentence."},
-            {"role": "user", "content": prompt_text}
-        ],
-        "max_tokens": 64,
-        "temperature": 0.2
-    }
-    try:
-        req = request.Request(
-            LOCAL_LLM_URL,
-            data=json.dumps(payload).encode("utf-8"),
-            headers={"Content-Type": "application/json"}
+    """Zero-cost cognitive query routed across Tier 0 (Local Qwen) and Tier 1 (Free Cloud)."""
+    if GLOBAL_PARASITE_ROUTER:
+        res = GLOBAL_PARASITE_ROUTER.query(
+            prompt_text,
+            system_prompt="Eres la mente cibernética del agente VLA de Snatcher. Responde con decisiones tácticas expertas en 1 oración.",
+            max_tokens=64
         )
-        with request.urlopen(req, timeout=10) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            return data["choices"][0]["message"]["content"].strip()
-    except Exception as e:
-        return f"Reflex fallback (local LLM offline/busy): proceed with optimal tactical route."
+        return f"[{res['provider']}] {res['response']}"
+    return "Reflex fallback: ruta táctica óptima sin demoras."
 
 # ---------------------------------------------------------------------------
 # MAIN AUTONOMOUS PLAYTEST RUNNER
