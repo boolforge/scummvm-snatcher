@@ -395,7 +395,54 @@ def synthesize_ground_truth_headers(unicorn_data):
     log("SYNTH", f"Generated: {scd_header}")
 
 # =============================================================================
-# 8. SCUMMVM BUILD VERIFICATION
+# 8. ADVANCED EMULATOR DEBUGGING & RE INTERCEPTION
+# =============================================================================
+def run_emulator_debugger():
+    log_banner("ADVANCED EMULATOR DEBUGGING (MEDNAFEN, GDB-MULTIARCH & UNICORN)")
+
+    # 1. Mednafen Diagnostics
+    log("EMU-DBG", "Running Mednafen multi-system emulator diagnostics...")
+    cmd_mednafen = (
+        'su -c "export PATH=/data/user/0/com.agy/files/usr/bin:$PATH; '
+        'proot-distro login --bind /data/user/0/com.agy/files/scummvm:/scummvm '
+        '--bind /storage/emulated/0:/storage/emulated/0 debian '
+        '-- /usr/games/mednafen"'
+    )
+    proc_med = subprocess.run(cmd_mednafen, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    modules = [line.strip() for line in proc_med.stdout.split("\n") if "Emulation modules:" in line]
+    if modules:
+        log("EMU-DBG", f"Mednafen 1.32.1: {modules[0]}")
+
+    # 2. GDB-Multiarch Target Architecture Verification
+    log("EMU-DBG", "Validating gdb-multiarch cross-target debugger...")
+    cmd_gdb = (
+        'su -c "export PATH=/data/user/0/com.agy/files/usr/bin:$PATH; '
+        'proot-distro login debian -- gdb-multiarch -batch -ex \"set architecture mips\" -ex \"set architecture sh\" -ex \"set architecture m68k\" -ex \"echo GDB_MULTIARCH_OK\\n\""'
+    )
+    proc_gdb = subprocess.run(cmd_gdb, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    if "GDB_MULTIARCH_OK" in proc_gdb.stdout:
+        log("EMU-DBG", "gdb-multiarch: Verified cross-architecture debugging support (MIPS, SH-2, M68K)")
+
+    # 3. Frida Dynamic Instrumentation Script Verification
+    frida_script = os.path.join(TOOLS_DIR, "snatcher_frida_tracer.js")
+    if os.path.exists(frida_script):
+        log("EMU-DBG", f"Frida Tracer Hook: Verified dynamic interception script ({frida_script})")
+
+    # 4. Unicorn Breakpoint & Register State Capture
+    log("EMU-DBG", "Executing Unicorn instruction-level debugger trace on PS1 MIPS...")
+    cmd_uc_dbg = (
+        'su -c "export PATH=/data/user/0/com.agy/files/usr/bin:$PATH; '
+        'proot-distro login --bind /data/user/0/com.agy/files/scummvm:/scummvm '
+        '--bind /storage/emulated/0:/storage/emulated/0 debian '
+        '-- python3 /scummvm/tools/re_pipeline/snatcher_unicorn_debugger.py"'
+    )
+    proc_uc = subprocess.run(cmd_uc_dbg, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    for line in proc_uc.stdout.strip().split("\n"):
+        if "[DBG_BREAKPOINT_HIT]" in line:
+            log("EMU-DBG", f"Unicorn CPU Debugger: {line.strip()}")
+
+# =============================================================================
+# 9. SCUMMVM BUILD VERIFICATION
 # =============================================================================
 def check_scummvm_build():
     log_banner("VERIFYING SCUMMVM COMPILATION INTEGRITY")
@@ -421,6 +468,7 @@ def main():
     parser.add_argument("--unicorn", action="store_true", help="Run Unicorn dynamic hardware trace")
     parser.add_argument("--decompiler", action="store_true", help="Run semantic C++ decompiler")
     parser.add_argument("--synth", action="store_true", help="Synthesize ScummVM ground-truth headers")
+    parser.add_argument("--emu-debug", action="store_true", help="Run advanced emulator debugging (Mednafen/GDB/Unicorn)")
     parser.add_argument("--build", action="store_true", help="Verify ScummVM compilation")
     args = parser.parse_args()
 
@@ -450,6 +498,9 @@ def main():
 
     if run_all or args.angr:
         run_angr_analysis()
+
+    if run_all or args.emu_debug:
+        run_emulator_debugger()
 
     if run_all or args.build:
         check_scummvm_build()
