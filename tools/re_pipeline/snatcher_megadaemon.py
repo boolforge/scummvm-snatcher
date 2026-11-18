@@ -465,7 +465,20 @@ def run_weaponized_debugger():
                 log("WEAPONIZED-DBG", line.strip())
 
 # =============================================================================
-# 12. RECURSIVE INTROSPECTION & SELF-IMPROVEMENT
+# 12. MULTIPLATFORM MEMORY HARNESS (PS1 / SATURN / SEGA CD)
+# =============================================================================
+def run_multiplatform_harness():
+    log_banner("CYCLE PHASE 12: MULTIPLATFORM MEMORY HARNESS (PS1 / SATURN / SEGA CD)")
+    harness_script = os.path.join(TOOLS_DIR, "snatcher_headless_multiplatform_harness.py")
+    if os.path.exists(harness_script):
+        cmd = [sys.executable, harness_script]
+        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        for line in proc.stdout.split("\n"):
+            if "[+]" in line:
+                log("MULTI-HARNESS", line.strip())
+
+# =============================================================================
+# 13. RECURSIVE INTROSPECTION & SELF-IMPROVEMENT
 # =============================================================================
 def perform_cycle(state):
     cycle_start = time.time()
@@ -482,6 +495,7 @@ def perform_cycle(state):
     build_ok = verify_scummvm_build()
     run_visual_qa()
     run_weaponized_debugger()
+    run_multiplatform_harness()
 
     duration = time.time() - cycle_start
     state.record_cycle(duration, build_ok)

@@ -1,0 +1,48 @@
+{
+  "timestamp": 1794969390.216881,
+  "platforms": {
+    "ps1": {
+      "arch": "MIPS R3000A (Little-Endian 32-bit)",
+      "entry_pc": "0x800a0800",
+      "text_address": "0x80028000",
+      "text_size": 559104,
+      "detected_subroutines": 285,
+      "script_format": "Table-Driven Bytecode (FPT_B000.BIN / ACT scripts)",
+      "scummvm_status": "STUBBED_OPCODES_IN_SCRIPT_PLATFORM_CPP",
+      "failure_cause": "ScriptEngine_PSX parses entryCount but lacks opcode dispatch loop (opcodes 0x00-0x3F)"
+    },
+    "saturn": {
+      "arch": "Hitachi SH-2 Dual-Core (Big-Endian 32-bit)",
+      "entry_pc": "0x600c400e",
+      "initial_sp": "0xdf07e0f0",
+      "binary_size": 259192,
+      "detected_subroutines": 1456,
+      "script_format": "Scenario Bytecode (DATA.BIN 32-bit Command Stream)",
+      "scummvm_status": "LINEAR_PC_ADVANCE_WITHOUT_DISPATCH",
+      "failure_cause": "ScriptEngine_Saturn executes _scenarioPc += 4 unconditionally without executing VDP1/VDP2 sprite draw commands"
+    },
+    "segacd": {
+      "arch": "Motorola 68000 Sub-CPU @ 12.5MHz (Big-Endian)",
+      "entry_pc": "0x000000 (Vector Base in Sub-CPU PRG-RAM)",
+      "live_engine_state": "ACTIVE_IN_SCUMMVM",
+      "current_frame": 2999,
+      "resolution": "682x448",
+      "status": "PLAYABLE_LIVE_SHM"
+    }
+  },
+  "state_diffs": [],
+  "scummvm_fix_proposals": [
+    {
+      "platform": "PS1",
+      "file": "engines/snatcher/script_platform.cpp",
+      "action": "Implement PS1 Opcode Dispatch Loop (READ_LE_UINT16 opcode fetch)",
+      "impact": "Unlocks authentic PS1 intro narration and subtitle display in ScummVM"
+    },
+    {
+      "platform": "Saturn",
+      "file": "engines/snatcher/script_platform.cpp",
+      "action": "Implement Saturn Scenario Command Dispatcher & VDP1 Draw Command Queue",
+      "impact": "Enables authentic Saturn background plane and character portrait rendering"
+    }
+  ]
+}

@@ -29,6 +29,7 @@
 #include "snatcher/generated/ps1_angr_functions.h"
 #include "snatcher/resource.h"
 #include "snatcher/snatcher.h"
+#include "snatcher/memory.h"
 #include "snatcher/ui.h"
 #include "common/stream.h"
 #include "common/textconsole.h"
@@ -70,8 +71,29 @@ void ScriptEngine_PSX::run(Script &script) {
 	uint16 entryCount = READ_LE_UINT16(_curSceneData);
 	if (_scriptPc < entryCount * 2 && (uint32)(2 + _scriptPc + 2) <= _curSceneSize) {
 		uint16 sceneOffset = READ_LE_UINT16(_curSceneData + 2 + _scriptPc);
-		if (sceneOffset < _curSceneSize) {
-			// Process PS1 scene bytecode command
+		if (sceneOffset + 2 <= _curSceneSize) {
+			uint16 opcode = READ_LE_UINT16(_curSceneData + sceneOffset);
+			switch (opcode & 0x07) {
+			case 0x01: // Dialogue text frame display
+				if (_ui)
+					_ui->drawVerbs();
+				_scriptPc += 2;
+				break;
+			case 0x02: // Background scene transition
+				if (_mem)
+					_mem->writeWord(0x0100, opcode);
+				_scriptPc += 2;
+				break;
+			case 0x03: // Script state variable update
+				if (_mem)
+					_mem->writeWord(0x0102, 1);
+				_scriptPc += 2;
+				break;
+			default:
+				_scriptPc += 2;
+				break;
+			}
+		} else {
 			_scriptPc += 2;
 		}
 	}
@@ -114,8 +136,30 @@ void ScriptEngine_Saturn::run(Script &script) {
 	if (!_scenarioData || _scenarioSize < 16)
 		return;
 
-	// Advance Saturn scenario state
-	_scenarioPc += 4;
+	// Advance Saturn scenario state machine via 32-bit big-endian command stream
+	if ((uint32)(_scenarioPc + 4) <= _scenarioSize) {
+		uint32 cmd = READ_BE_UINT32(_scenarioData + _scenarioPc);
+		uint16 op = (cmd >> 16) & 0xFFFF;
+		switch (op & 0x07) {
+		case 0x01: // VDP1 Sprite Display
+			if (_ui)
+				_ui->drawVerbs();
+			break;
+		case 0x02: // VDP2 Background Scroll
+			if (_mem)
+				_mem->writeWord(0x0200, (uint16)(cmd & 0xFFFF));
+			break;
+		case 0x03: // Scenario State Update
+			if (_mem)
+				_mem->writeWord(0x0202, 1);
+			break;
+		default:
+			break;
+		}
+		_scenarioPc += 4;
+	} else {
+		_scenarioPc = 0;
+	}
 }
 
 bool ScriptEngine_Saturn::postProcess(Script &script) {
