@@ -439,7 +439,20 @@ def run_llm_enrichment():
                 log("LLM-BRIDGE", line.strip())
 
 # =============================================================================
-# 10. RECURSIVE INTROSPECTION & SELF-IMPROVEMENT
+# 10. AUTOMATED VISUAL QA & FIDELITY AUDIT
+# =============================================================================
+def run_visual_qa():
+    log_banner("CYCLE PHASE 10: AUTOMATED VISUAL QA & FIDELITY AUDIT")
+    visual_script = os.path.join(TOOLS_DIR, "snatcher_visual_agent.py")
+    if os.path.exists(visual_script):
+        cmd = [sys.executable, visual_script]
+        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        for line in proc.stdout.split("\n"):
+            if "[PASS]" in line or "[FAIL]" in line or "VISUAL QA" in line:
+                log("VISUAL-QA", line.strip())
+
+# =============================================================================
+# 11. RECURSIVE INTROSPECTION & SELF-IMPROVEMENT
 # =============================================================================
 def perform_cycle(state):
     cycle_start = time.time()
@@ -454,6 +467,7 @@ def perform_cycle(state):
     synthesize_headers()
     run_llm_enrichment()
     build_ok = verify_scummvm_build()
+    run_visual_qa()
 
     duration = time.time() - cycle_start
     state.record_cycle(duration, build_ok)

@@ -1,11 +1,11 @@
 {
-  "cycle_count": 3,
+  "cycle_count": 5,
   "start_timestamp": 1794961419.673968,
-  "last_cycle_timestamp": 1794962385.2369597,
+  "last_cycle_timestamp": 1794963286.1133184,
   "total_functions_recovered": 14494,
-  "total_decompiled_functions": 923,
-  "total_hardware_traps": 3,
-  "scummvm_build_passes": 3,
+  "total_decompiled_functions": 918,
+  "total_hardware_traps": 5,
+  "scummvm_build_passes": 5,
   "scummvm_build_failures": 0,
   "platforms": {
     "ps1": {
@@ -53,6 +53,20 @@
       "cycle": 3,
       "timestamp": 1794962385.2369628,
       "duration": 335.96,
+      "build_ok": true,
+      "functions": 14494
+    },
+    {
+      "cycle": 4,
+      "timestamp": 1794962866.876895,
+      "duration": 216.15,
+      "build_ok": true,
+      "functions": 14494
+    },
+    {
+      "cycle": 5,
+      "timestamp": 1794963286.1133254,
+      "duration": 335.15,
       "build_ok": true,
       "functions": 14494
     }

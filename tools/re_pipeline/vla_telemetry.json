@@ -1,0 +1,290 @@
+{
+  "timestamp": 1794963699.807018,
+  "hardware": {
+    "soc": "Samsung Exynos 2100 5G",
+    "npu": "Triple-Core NPU 26 TOPS (Eden HAL 1.3)",
+    "npu_active": true,
+    "npu_version": "Build info: Not available; NCP version: 24; Mailbox verison: 7",
+    "onnx_provider": "NnapiExecutionProvider (NPU/Eden)",
+    "gpu": "ARM Mali-G78 MP14 (OpenCL 2.0 / Vulkan 1.3)",
+    "cpu": "ARMv8.2-A (1x Cortex-X1 2.9GHz + 3x Cortex-A78 + 4x Cortex-A55)"
+  },
+  "platforms_tested": {
+    "Sega CD": {
+      "perception": {
+        "scene": "INTRO_CINEMATIC_NARRATION",
+        "perception_time_ms": 56.55,
+        "target_sector": [
+          2,
+          1
+        ],
+        "avg_luminance": 22.2,
+        "black_ratio": 0.0,
+        "color_entropy": 3,
+        "anomaly_detected": false
+      },
+      "audio": {
+        "track": "track02.wav",
+        "framerate": 44100,
+        "rms_amplitude": 3801.3,
+        "peak_amplitude": 29246.5,
+        "clipping_detected": false,
+        "acoustic_event": "ACOUSTIC_GUNSHOT_SFX",
+        "description": "High-transient blaster fire / metallic impact detected.",
+        "listen_latency_ms": 23.6,
+        "spectral_distribution": {
+          "bass_ratio": 0.005,
+          "voice_ratio": 0.183,
+          "treble_ratio": 0.812
+        }
+      },
+      "action": {
+        "platform": "Sega CD",
+        "scene": "INTRO_CINEMATIC_NARRATION",
+        "reaction_time_ms": 56.56,
+        "action_sequence": [
+          {
+            "type": "KEY_DOWN",
+            "button": "C",
+            "duration_ms": 16.6
+          }
+        ],
+        "explanation": "Narrative text crawl: advancing dialog frame via [C]",
+        "timestamp": 1794963699.8998864
+      },
+      "llm_guidance": "The next tactical objective is to advance dialog frame via [C].",
+      "status": "PASS"
+    },
+    "PC Engine": {
+      "perception": {
+        "scene": "INTRO_CINEMATIC_NARRATION",
+        "perception_time_ms": 131.87,
+        "target_sector": [
+          2,
+          1
+        ],
+        "avg_luminance": 19.6,
+        "black_ratio": 0.0,
+        "color_entropy": 3,
+        "anomaly_detected": false
+      },
+      "audio": {
+        "track": "track02.wav",
+        "framerate": 44100,
+        "rms_amplitude": 3801.3,
+        "peak_amplitude": 29246.5,
+        "clipping_detected": false,
+        "acoustic_event": "ACOUSTIC_GUNSHOT_SFX",
+        "description": "High-transient blaster fire / metallic impact detected.",
+        "listen_latency_ms": 14.0,
+        "spectral_distribution": {
+          "bass_ratio": 0.005,
+          "voice_ratio": 0.183,
+          "treble_ratio": 0.812
+        }
+      },
+      "action": {
+        "platform": "PC Engine",
+        "scene": "INTRO_CINEMATIC_NARRATION",
+        "reaction_time_ms": 131.89,
+        "action_sequence": [
+          {
+            "type": "KEY_DOWN",
+            "button": "I",
+            "duration_ms": 16.6
+          }
+        ],
+        "explanation": "Narrative text crawl: advancing dialog frame via [I]",
+        "timestamp": 1794963704.215605
+      },
+      "llm_guidance": "Next tactical objective: Narrative text crawl: advancing dialog frame via [I].",
+      "status": "PASS"
+    },
+    "PlayStation 1": {
+      "perception": {
+        "scene": "INTRO_CINEMATIC_NARRATION",
+        "perception_time_ms": 73.71,
+        "target_sector": [
+          2,
+          1
+        ],
+        "avg_luminance": 25.0,
+        "black_ratio": 0.0,
+        "color_entropy": 3,
+        "anomaly_detected": false
+      },
+      "audio": {
+        "track": "track02.wav",
+        "framerate": 44100,
+        "rms_amplitude": 3801.3,
+        "peak_amplitude": 29246.5,
+        "clipping_detected": false,
+        "acoustic_event": "ACOUSTIC_GUNSHOT_SFX",
+        "description": "High-transient blaster fire / metallic impact detected.",
+        "listen_latency_ms": 11.01,
+        "spectral_distribution": {
+          "bass_ratio": 0.005,
+          "voice_ratio": 0.183,
+          "treble_ratio": 0.812
+        }
+      },
+      "action": {
+        "platform": "PlayStation 1",
+        "scene": "INTRO_CINEMATIC_NARRATION",
+        "reaction_time_ms": 73.72,
+        "action_sequence": [
+          {
+            "type": "KEY_DOWN",
+            "button": "CIRCLE",
+            "duration_ms": 16.6
+          }
+        ],
+        "explanation": "Narrative text crawl: advancing dialog frame via [CIRCLE]",
+        "timestamp": 1794963707.0537975
+      },
+      "llm_guidance": "Next tactical objective: Narrative text crawl: advancing dialog frame via [CIRCLE].",
+      "status": "PASS"
+    },
+    "Sega Saturn": {
+      "perception": {
+        "scene": "INTRO_CINEMATIC_NARRATION",
+        "perception_time_ms": 185.48,
+        "target_sector": [
+          2,
+          1
+        ],
+        "avg_luminance": 29.5,
+        "black_ratio": 0.0,
+        "color_entropy": 3,
+        "anomaly_detected": false
+      },
+      "audio": {
+        "track": "track02.wav",
+        "framerate": 44100,
+        "rms_amplitude": 3801.3,
+        "peak_amplitude": 29246.5,
+        "clipping_detected": false,
+        "acoustic_event": "ACOUSTIC_GUNSHOT_SFX",
+        "description": "High-transient blaster fire / metallic impact detected.",
+        "listen_latency_ms": 10.93,
+        "spectral_distribution": {
+          "bass_ratio": 0.005,
+          "voice_ratio": 0.183,
+          "treble_ratio": 0.812
+        }
+      },
+      "action": {
+        "platform": "Sega Saturn",
+        "scene": "INTRO_CINEMATIC_NARRATION",
+        "reaction_time_ms": 185.49,
+        "action_sequence": [
+          {
+            "type": "KEY_DOWN",
+            "button": "C",
+            "duration_ms": 16.6
+          }
+        ],
+        "explanation": "Narrative text crawl: advancing dialog frame via [C]",
+        "timestamp": 1794963711.4510481
+      },
+      "llm_guidance": "The next tactical objective is to navigate through the dialog frame and advance to the next dialog frame.",
+      "status": "PASS"
+    },
+    "MSX2": {
+      "perception": {
+        "scene": "INTRO_CINEMATIC_NARRATION",
+        "perception_time_ms": 84.08,
+        "target_sector": [
+          2,
+          1
+        ],
+        "avg_luminance": 17.7,
+        "black_ratio": 0.0,
+        "color_entropy": 3,
+        "anomaly_detected": false
+      },
+      "audio": {
+        "track": "track02.wav",
+        "framerate": 44100,
+        "rms_amplitude": 3801.3,
+        "peak_amplitude": 29246.5,
+        "clipping_detected": false,
+        "acoustic_event": "ACOUSTIC_GUNSHOT_SFX",
+        "description": "High-transient blaster fire / metallic impact detected.",
+        "listen_latency_ms": 9.26,
+        "spectral_distribution": {
+          "bass_ratio": 0.005,
+          "voice_ratio": 0.183,
+          "treble_ratio": 0.812
+        }
+      },
+      "action": {
+        "platform": "MSX2",
+        "scene": "INTRO_CINEMATIC_NARRATION",
+        "reaction_time_ms": 84.09,
+        "action_sequence": [
+          {
+            "type": "KEY_DOWN",
+            "button": "RETURN",
+            "duration_ms": 16.6
+          }
+        ],
+        "explanation": "Narrative text crawl: advancing dialog frame via [RETURN]",
+        "timestamp": 1794963717.2122724
+      },
+      "llm_guidance": "Next tactical objective: Narrative text crawl: advancing dialog frame via [RETURN].",
+      "status": "PASS"
+    },
+    "PC-8801": {
+      "perception": {
+        "scene": "INTRO_CINEMATIC_NARRATION",
+        "perception_time_ms": 129.97,
+        "target_sector": [
+          2,
+          1
+        ],
+        "avg_luminance": 3.7,
+        "black_ratio": 0.766,
+        "color_entropy": 3,
+        "anomaly_detected": false
+      },
+      "audio": {
+        "track": "track02.wav",
+        "framerate": 44100,
+        "rms_amplitude": 3801.3,
+        "peak_amplitude": 29246.5,
+        "clipping_detected": false,
+        "acoustic_event": "ACOUSTIC_GUNSHOT_SFX",
+        "description": "High-transient blaster fire / metallic impact detected.",
+        "listen_latency_ms": 12.7,
+        "spectral_distribution": {
+          "bass_ratio": 0.005,
+          "voice_ratio": 0.183,
+          "treble_ratio": 0.812
+        }
+      },
+      "action": {
+        "platform": "PC-8801",
+        "scene": "INTRO_CINEMATIC_NARRATION",
+        "reaction_time_ms": 129.98,
+        "action_sequence": [
+          {
+            "type": "KEY_DOWN",
+            "button": "RETURN",
+            "duration_ms": 16.6
+          }
+        ],
+        "explanation": "Narrative text crawl: advancing dialog frame via [RETURN]",
+        "timestamp": 1794963721.7622352
+      },
+      "llm_guidance": "Next tactical objective is narrative text crawl: advancing dialog frame via [RETURN].",
+      "status": "PASS"
+    }
+  },
+  "summary": {
+    "total_frames_analyzed": 6,
+    "avg_reaction_time_ms": 110.29,
+    "targets_neutralized": 6,
+    "all_systems_go": true
+  }
+}
