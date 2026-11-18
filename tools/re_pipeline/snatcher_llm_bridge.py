@@ -111,7 +111,7 @@ def query_llm(prompt, system_prompt="You are a retro-engineering C++ compiler ex
             {"role": "user", "content": prompt}
         ],
         "temperature": 0.2,
-        "max_tokens": 2048
+        "max_tokens": 256
     }
 
     req_data = json.dumps(payload).encode("utf-8")
@@ -122,7 +122,7 @@ def query_llm(prompt, system_prompt="You are a retro-engineering C++ compiler ex
 
     try:
         req = urllib.request.Request(url, data=req_data, headers=headers, method="POST")
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        with urllib.request.urlopen(req, timeout=60) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             return data["choices"][0]["message"]["content"]
     except Exception as e:
