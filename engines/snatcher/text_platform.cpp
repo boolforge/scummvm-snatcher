@@ -21,6 +21,7 @@
 
 #include "snatcher/text_platform.h"
 #include "snatcher/animator.h"
+#include "snatcher/generated/msx2_authentic_font.h"
 #include "common/util.h"
 
 namespace Snatcher {
@@ -318,6 +319,42 @@ TextRenderer_MSX2::~TextRenderer_MSX2() {
 }
 
 void TextRenderer_MSX2::drawGlyph(uint8 glyphCode) {
+	if (glyphCode < 16) {
+		const uint8 *glyphData = kMSX2FontSampleGlyphs[glyphCode];
+		bool hasData = false;
+		for (int i = 0; i < 32; ++i) {
+			if (glyphData[i] != 0) {
+				hasData = true;
+				break;
+			}
+		}
+		if (hasData && _animator) {
+			uint8 *tb = _animator->getTextRenderBuffer();
+			if (tb) {
+				int w = _animator->realScreenWidth();
+				int h = _animator->realScreenHeight();
+				for (int y = 0; y < 16; ++y) {
+					int py = _curY + y;
+					if (py < 0 || py >= h)
+						continue;
+					uint8 bLeft = glyphData[y];
+					uint8 bRight = glyphData[16 + y];
+					for (int x = 0; x < 8; ++x) {
+						int px = _curX + x;
+						if (px < w && (bLeft & (1 << (7 - x))))
+							tb[py * w + px] = (uint8)_color;
+					}
+					for (int x = 0; x < 8; ++x) {
+						int px = _curX + 8 + x;
+						if (px < w && (bRight & (1 << (7 - x))))
+							tb[py * w + px] = (uint8)_color;
+					}
+				}
+				_curX += 16;
+				return;
+			}
+		}
+	}
 	TextRenderer_PlatformBase::drawGlyph(glyphCode);
 }
 

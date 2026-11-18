@@ -1,0 +1,46 @@
+{
+  "cycle_count": 1,
+  "start_timestamp": 1794961419.673968,
+  "last_cycle_timestamp": 1794961668.0216835,
+  "total_functions_recovered": 14494,
+  "total_decompiled_functions": 922,
+  "total_hardware_traps": 1,
+  "scummvm_build_passes": 1,
+  "scummvm_build_failures": 0,
+  "platforms": {
+    "ps1": {
+      "functions": 14494,
+      "verified": false
+    },
+    "saturn": {
+      "functions": 0,
+      "verified": false
+    },
+    "pce": {
+      "scenes": 0,
+      "verified": false
+    },
+    "msx2": {
+      "palettes": 256,
+      "font_glyphs": 596,
+      "verified": false
+    },
+    "pc88": {
+      "ports": 7,
+      "verified": false
+    },
+    "segacd": {
+      "subcode_size": 53110,
+      "verified": false
+    }
+  },
+  "history": [
+    {
+      "cycle": 1,
+      "timestamp": 1794961668.0216858,
+      "duration": 248.35,
+      "build_ok": true,
+      "functions": 14494
+    }
+  ]
+}
