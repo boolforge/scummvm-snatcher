@@ -1,8 +1,8 @@
 {
-  "iterations": 5,
+  "iterations": 6,
   "start_time": 1794973469.8461795,
-  "last_update": 1794974705.792842,
-  "tests_passed": 29,
+  "last_update": 1794975005.9389234,
+  "tests_passed": 35,
   "tests_failed": 1,
   "anomalies_resolved": 0,
   "current_thermal": {
@@ -16,43 +16,43 @@
     {
       "platform": "pce",
       "status": "PASS",
-      "timestamp": 1794974705.792852,
-      "latency_us": 2915.96,
+      "timestamp": 1794975005.9389324,
+      "latency_us": 4339.58,
       "note": "HuC6280 entry JMP $2DF9 validated"
     },
     {
       "platform": "msx2",
       "status": "PASS",
-      "timestamp": 1794974705.795913,
-      "latency_us": 2172.96,
+      "timestamp": 1794975005.9433112,
+      "latency_us": 2642.15,
       "note": "MSX2 CP/M COM header validated (Z80 entry 11BB05, SCC Wave RAM probe OK)"
     },
     {
       "platform": "pc88",
       "status": "PASS",
-      "timestamp": 1794974705.798232,
-      "latency_us": 3629.15,
+      "timestamp": 1794975005.9459956,
+      "latency_us": 2297.11,
       "note": "PC-8801 D88 Disk image verified (426240 bytes, YM2608 OPNA 6-ch FM + SSG ready)"
     },
     {
       "platform": "segacd",
       "status": "PASS",
-      "timestamp": 1794974705.801895,
-      "latency_us": 44.58,
+      "timestamp": 1794975005.948321,
+      "latency_us": 1938.27,
       "note": "Sega CD Sub-CPU Gate Array binary verified"
     },
     {
       "platform": "saturn",
       "status": "PASS",
-      "timestamp": 1794974705.8019478,
-      "latency_us": 24.19,
+      "timestamp": 1794975005.9502883,
+      "latency_us": 281.19,
       "note": "Saturn SH-2 MAIN_L vector verified"
     },
     {
       "platform": "ps1",
       "status": "PASS",
-      "timestamp": 1794974705.8019795,
-      "latency_us": 1637.96,
+      "timestamp": 1794975005.9505851,
+      "latency_us": 1752.15,
       "note": "PS-X EXE magic header confirmed"
     }
   ]
