@@ -1,0 +1,56 @@
+{
+  "timestamp": 1794970889.2137084,
+  "platforms": {
+    "pce": {
+      "platform": "PC Engine",
+      "arch": "HuC6280 (6502 @ 7.16MHz)",
+      "binary_size": 4096,
+      "recovered_jump_targets": 86,
+      "vdc_register_writes": 0,
+      "scummvm_binding": "ScriptEngine_PCE (scenes/scene_06_sec0158_bank16.bin)"
+    },
+    "msx2": {
+      "platform": "MSX2",
+      "arch": "Zilog Z80 @ 3.58MHz",
+      "com_size": 3584,
+      "v9938_port_writes": 0,
+      "scc_sound_accesses": 0,
+      "scenario_entries": 15,
+      "scenario_offset": "0x240",
+      "scenario_signature": "0xbade",
+      "scummvm_binding": "ScriptEngine_MSX2 (Disk0/SNATCHER.SCR)"
+    },
+    "pc88": {
+      "platform": "PC-8801",
+      "arch": "Zilog Z80 @ 4MHz/8MHz",
+      "binary_size": 418816,
+      "gdc_display_commands": 34,
+      "opna_sound_writes": 14,
+      "scummvm_binding": "ScriptEngine_PC88 (Disk1-Program_linear.img)"
+    },
+    "ps1": {
+      "platform": "PlayStation 1",
+      "arch": "MIPS R3000A (Little-Endian)",
+      "analyzed_code_bytes": 32768,
+      "jal_function_calls": 0,
+      "jr_returns": 0,
+      "scummvm_binding": "ScriptEngine_PSX (PRG/FXM/FPT_B000.BIN)"
+    },
+    "saturn": {
+      "platform": "Sega Saturn",
+      "arch": "Hitachi SH-2 Dual-Core (Big-Endian)",
+      "binary_size": 259192,
+      "bsr_branch_calls": 150,
+      "rts_returns": 382,
+      "scummvm_binding": "ScriptEngine_Saturn (DATA.BIN)"
+    },
+    "segacd": {
+      "platform": "Sega CD",
+      "arch": "Motorola 68000 Sub-CPU @ 12.5MHz",
+      "subcode_bytes": 32768,
+      "jsr_bsr_calls": 1,
+      "rts_returns": 2,
+      "scummvm_binding": "ScriptEngine (engines/snatcher/script.cpp)"
+    }
+  }
+}

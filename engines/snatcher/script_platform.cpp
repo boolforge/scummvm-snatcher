@@ -23,9 +23,12 @@
 #include "snatcher/generated/ps1_hardware_entry_map.h"
 #include "snatcher/generated/saturn_hardware_map.h"
 #include "snatcher/generated/pce_bank16_scene_map.h"
+#include "snatcher/generated/pce_recovered_opcodes.h"
 #include "snatcher/generated/pc88_hardware_map.h"
+#include "snatcher/generated/pc88_recovered_opcodes.h"
 #include "snatcher/generated/segacd_hardware_map.h"
 #include "snatcher/generated/msx2_v9938_palette_table.h"
+#include "snatcher/generated/msx2_recovered_opcodes.h"
 #include "snatcher/generated/ps1_angr_functions.h"
 #include "snatcher/resource.h"
 #include "snatcher/snatcher.h"
@@ -199,17 +202,17 @@ void ScriptEngine_PCE::run(Script &script) {
 	if ((uint32)(_bank16Pc + 2) <= _bank16Size) {
 		uint16 opcode = READ_LE_UINT16(_bank16Data + _bank16Pc);
 		switch (opcode & 0x07) {
-		case 0x01: // Prompt & Text
+		case kPCEOpcodeTextPrompt: // Prompt & Text
 			if (_ui)
 				_ui->drawVerbs();
 			_bank16Pc += 2;
 			break;
-		case 0x02: // VDC Plane & Palette Update
+		case kPCEOpcodeVdcPlane: // VDC Plane & Palette Update
 			if (_mem)
 				_mem->writeWord(0x0300, opcode);
 			_bank16Pc += 2;
 			break;
-		case 0x03: // Flag / Game State Update
+		case kPCEOpcodeStateUpdate: // Flag / Game State Update
 			if (_mem)
 				_mem->writeWord(0x0302, 1);
 			_bank16Pc += 2;
@@ -264,17 +267,17 @@ void ScriptEngine_MSX2::run(Script &script) {
 	if ((uint32)(_scrPc + 2) <= _scrSize) {
 		uint16 opcode = READ_LE_UINT16(_scrData + _scrPc);
 		switch (opcode & 0x07) {
-		case 0x01: // MSX Dialogue & Kanji Subtitle
+		case kMSX2OpcodeDialogue: // MSX Dialogue & Kanji Subtitle
 			if (_ui)
 				_ui->drawVerbs();
 			_scrPc += 2;
 			break;
-		case 0x02: // V9938 Screen 8 Palette / VRAM Blit
+		case kMSX2OpcodeV9938Blit: // V9938 Screen 8 Palette / VRAM Blit
 			if (_mem)
 				_mem->writeWord(0x0400, opcode);
 			_scrPc += 2;
 			break;
-		case 0x03: // SCC Sound Event / Scenario Flag
+		case kMSX2OpcodeSccSound: // SCC Sound Event / Scenario Flag
 			if (_mem)
 				_mem->writeWord(0x0402, 1);
 			_scrPc += 2;
@@ -325,17 +328,17 @@ void ScriptEngine_PC88::run(Script &script) {
 	if ((uint32)(_diskPc + 2) <= _diskSize) {
 		uint16 opcode = READ_LE_UINT16(_diskData + _diskPc);
 		switch (opcode & 0x07) {
-		case 0x01: // Text prompt
+		case kPC88OpcodeTextPrompt: // Text prompt
 			if (_ui)
 				_ui->drawVerbs();
 			_diskPc += 2;
 			break;
-		case 0x02: // NEC uPD7220 GDC 3-Plane Drawing
+		case kPC88OpcodeGdc3Plane: // NEC uPD7220 GDC 3-Plane Drawing
 			if (_mem)
 				_mem->writeWord(0x0500, opcode);
 			_diskPc += 2;
 			break;
-		case 0x03: // OPNA YM2608 Sound / Game State
+		case kPC88OpcodeOpnaSound: // OPNA YM2608 Sound / Game State
 			if (_mem)
 				_mem->writeWord(0x0502, 1);
 			_diskPc += 2;
