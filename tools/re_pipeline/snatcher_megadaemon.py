@@ -425,7 +425,21 @@ def verify_scummvm_build():
         return False
 
 # =============================================================================
-# 9. RECURSIVE INTROSPECTION & SELF-IMPROVEMENT
+# 9. LLM SEMANTIC TRANSPILATION & REFACTORING (DEEPSEEK / LOCAL)
+# =============================================================================
+def run_llm_enrichment():
+    log_banner("CYCLE PHASE 9: LLM SEMANTIC TRANSPILATION (DEEPSEEK / LOCAL)")
+    bridge_script = os.path.join(TOOLS_DIR, "snatcher_llm_bridge.py")
+    decomp_file = os.path.join(DECOMPILED_DIR, "MAIN_L.BIN_ghidra_decompiled.c")
+    if os.path.exists(bridge_script) and os.path.exists(decomp_file):
+        cmd = [sys.executable, bridge_script, "--transpile", decomp_file, "--max", "2"]
+        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        for line in proc.stdout.split("\n"):
+            if "[+]" in line:
+                log("LLM-BRIDGE", line.strip())
+
+# =============================================================================
+# 10. RECURSIVE INTROSPECTION & SELF-IMPROVEMENT
 # =============================================================================
 def perform_cycle(state):
     cycle_start = time.time()
@@ -438,6 +452,7 @@ def perform_cycle(state):
     run_unicorn_emulation(state)
     extract_authentic_assets(state)
     synthesize_headers()
+    run_llm_enrichment()
     build_ok = verify_scummvm_build()
 
     duration = time.time() - cycle_start
