@@ -133,7 +133,7 @@ uint32 SoundDeviceSaturn::cdaGetTime() const {
 }
 
 void SoundDeviceSaturn::fmSendCommand(int cmd, int arg) {
-	debug(3, "SoundDeviceSaturn::fmSendCommand: cmd=0x%02X, arg=%d", cmd, arg);
+	debug(3, "SoundDeviceSaturn::fmSendCommand (SCSP 0x%08X): cmd=0x%02X, arg=%d", kSaturnSCSPBase, cmd, arg);
 }
 
 uint8 SoundDeviceSaturn::fmGetStatus() const {
@@ -141,7 +141,7 @@ uint8 SoundDeviceSaturn::fmGetStatus() const {
 }
 
 void SoundDeviceSaturn::pcmSendCommand(int cmd, int arg) {
-	debug(3, "SoundDeviceSaturn::pcmSendCommand: cmd=0x%02X, arg=%d", cmd, arg);
+	debug(3, "SoundDeviceSaturn::pcmSendCommand (SCSP/CD 0x%08X): cmd=0x%02X, arg=%d", kSaturnCDBuffer, cmd, arg);
 }
 
 void SoundDeviceSaturn::pcmInitSound(int sndId) {

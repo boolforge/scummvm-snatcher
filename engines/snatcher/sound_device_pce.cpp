@@ -143,8 +143,8 @@ uint8 SoundDevicePCE::fmGetStatus() const {
 }
 
 void SoundDevicePCE::pcmSendCommand(int cmd, int arg) {
-	// PC Engine OKI ADPCM streaming
-	debug(3, "SoundDevicePCE::pcmSendCommand (ADPCM): cmd=0x%02X, arg=%d", cmd, arg);
+	// PC Engine OKI ADPCM streaming (ports: 0x1808 data, 0x180A DMA)
+	debug(3, "SoundDevicePCE::pcmSendCommand (ADPCM 0x%04X/0x%04X): cmd=0x%02X, arg=%d", kPCEADPCMDataPort, kPCEADPCMDMAPort, cmd, arg);
 }
 
 void SoundDevicePCE::pcmInitSound(int sndId) {

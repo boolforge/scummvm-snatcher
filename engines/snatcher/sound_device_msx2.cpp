@@ -99,8 +99,8 @@ uint32 SoundDeviceMSX2::cdaGetTime() const {
 }
 
 void SoundDeviceMSX2::fmSendCommand(int cmd, int arg) {
-	// Konami SCC sound driver registers
-	debug(3, "SoundDeviceMSX2::fmSendCommand (SCC): cmd=0x%02X, arg=%d", cmd, arg);
+	// Konami SCC wavetable sound driver registers (base: kMSX2SCCWaveBase = 0x9800)
+	debug(3, "SoundDeviceMSX2::fmSendCommand (SCC): cmd=0x%02X, arg=%d (SCC Wave Base: 0x%04X)", cmd, arg, kMSX2SCCWaveBase);
 }
 
 uint8 SoundDeviceMSX2::fmGetStatus() const {
@@ -108,8 +108,8 @@ uint8 SoundDeviceMSX2::fmGetStatus() const {
 }
 
 void SoundDeviceMSX2::pcmSendCommand(int cmd, int arg) {
-	// PSG sound effects
-	debug(3, "SoundDeviceMSX2::pcmSendCommand (PSG): cmd=0x%02X, arg=%d", cmd, arg);
+	// PSG AY-3-8910 sound effects (ports: kMSX2PSGPortRegister = 0x00A0, kMSX2PSGPortData = 0x00A1)
+	debug(3, "SoundDeviceMSX2::pcmSendCommand (PSG): cmd=0x%02X, arg=%d (PSG Ports: 0x%04X / 0x%04X)", cmd, arg, kMSX2PSGPortRegister, kMSX2PSGPortData);
 }
 
 void SoundDeviceMSX2::pcmInitSound(int sndId) {

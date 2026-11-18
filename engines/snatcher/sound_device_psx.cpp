@@ -134,8 +134,8 @@ uint32 SoundDevicePSX::cdaGetTime() const {
 }
 
 void SoundDevicePSX::fmSendCommand(int cmd, int arg) {
-	// PSX does not use FM synthesis; mapped to SPU program cues
-	debug(3, "SoundDevicePSX::fmSendCommand: cmd=0x%02X, arg=%d", cmd, arg);
+	// PSX does not use FM synthesis; mapped to SPU program cues (base: 0x1F801C00)
+	debug(3, "SoundDevicePSX::fmSendCommand (SPU 0x%08X): cmd=0x%02X, arg=%d", kPS1PortSPUBase, cmd, arg);
 }
 
 uint8 SoundDevicePSX::fmGetStatus() const {

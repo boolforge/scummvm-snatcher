@@ -98,8 +98,8 @@ uint32 SoundDevicePC88::cdaGetTime() const {
 }
 
 void SoundDevicePC88::fmSendCommand(int cmd, int arg) {
-	// Yamaha YM2203 (OPN) FM commands
-	debug(3, "SoundDevicePC88::fmSendCommand (YM2203): cmd=0x%02X, arg=%d", cmd, arg);
+	// Yamaha YM2608 (OPNA) FM commands (ports: 0x0044/0x0045)
+	debug(3, "SoundDevicePC88::fmSendCommand (YM2608 0x%04X/0x%04X): cmd=0x%02X, arg=%d", kPC88PortYM2608Addr0, kPC88PortYM2608Data0, cmd, arg);
 }
 
 uint8 SoundDevicePC88::fmGetStatus() const {
@@ -107,8 +107,8 @@ uint8 SoundDevicePC88::fmGetStatus() const {
 }
 
 void SoundDevicePC88::pcmSendCommand(int cmd, int arg) {
-	// PC-88 SSG / Beep
-	debug(3, "SoundDevicePC88::pcmSendCommand (SSG): cmd=0x%02X, arg=%d", cmd, arg);
+	// PC-88 SSG / Sub-CPU PPI (port: 0x0031)
+	debug(3, "SoundDevicePC88::pcmSendCommand (PPI 0x%04X): cmd=0x%02X, arg=%d", kPC88PortSubCPUPPI, cmd, arg);
 }
 
 void SoundDevicePC88::pcmInitSound(int sndId) {
