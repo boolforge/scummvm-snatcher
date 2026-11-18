@@ -109,7 +109,7 @@ def inspect_all_platforms():
         log("INSPECT", f"[PC-88] Disk 1 Linear Image: {os.path.getsize(pc88_img)} bytes (NEC uPD7220 & YM2608)")
 
     # 6. Sega CD
-    scd_sub = os.path.join(SNATCHER_ROOT, "Sega-CD/English-Extracted/SUBCODE.BIN")
+    scd_sub = os.path.join(SNATCHER_ROOT, "SegaCD/Spanish-Translation/Extracted-Files/SUBCODE.BIN")
     if os.path.exists(scd_sub):
         log("INSPECT", f"[Sega CD] Authentic SUBCODE.BIN: {os.path.getsize(scd_sub)} bytes (68K Sub-CPU ASIC Word RAM)")
 
@@ -461,6 +461,7 @@ def check_scummvm_build():
 def main():
     parser = argparse.ArgumentParser(description="Snatcher Unified RE MegaHarness Super-Pipeline")
     parser.add_argument("--all", action="store_true", help="Run entire consolidated pipeline")
+    parser.add_argument("--daemon", action="store_true", help="Launch perpetual self-improving MegaDaemon loop")
     parser.add_argument("--inspect", action="store_true", help="Inspect all 6 platform binaries and assets")
     parser.add_argument("--static", action="store_true", help="Run static Capstone / z80dasm disassembly")
     parser.add_argument("--angr", action="store_true", help="Run angr CFG and symbolic analysis")
@@ -471,6 +472,10 @@ def main():
     parser.add_argument("--emu-debug", action="store_true", help="Run advanced emulator debugging (Mednafen/GDB/Unicorn)")
     parser.add_argument("--build", action="store_true", help="Verify ScummVM compilation")
     args = parser.parse_args()
+
+    if args.daemon:
+        daemon_script = os.path.join(TOOLS_DIR, "snatcher_megadaemon.py")
+        os.execv(sys.executable, [sys.executable, daemon_script, "--loop"])
 
     run_all = args.all or not any(vars(args).values())
 

@@ -28,6 +28,13 @@
 #include "snatcher/state.h"
 #include "snatcher/resource.h"
 
+#include "snatcher/generated/msx2_v9938_palette_table.h"
+#include "snatcher/generated/ps1_hardware_entry_map.h"
+#include "snatcher/generated/pce_bank16_scene_map.h"
+#include "snatcher/generated/saturn_hardware_map.h"
+#include "snatcher/generated/pc88_hardware_map.h"
+#include "snatcher/generated/segacd_hardware_map.h"
+
 #include "video/avi_decoder.h"
 #include "video/psx_decoder.h"
 #include "audio/decoders/adpcm.h"
@@ -769,12 +776,9 @@ private:
 
 			for (int i = 0; i < 54272; ++i) {
 				byte b = raw[i];
-				byte r = ((b >> 2) & 7) * 255 / 7;
-				byte g = ((b >> 5) & 7) * 255 / 7;
-				byte blue = (b & 3) * 255 / 3;
-				rgb[i * 3 + 0] = r;
-				rgb[i * 3 + 1] = g;
-				rgb[i * 3 + 2] = blue;
+				rgb[i * 3 + 0] = kMSX2Screen8Colors[b][0];
+				rgb[i * 3 + 1] = kMSX2Screen8Colors[b][1];
+				rgb[i * 3 + 2] = kMSX2Screen8Colors[b][2];
 			}
 			delete[] raw;
 
