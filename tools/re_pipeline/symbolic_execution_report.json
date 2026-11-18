@@ -1,0 +1,141 @@
+{
+  "timestamp": 1794971256.968481,
+  "total_platforms": 6,
+  "solver_results": {
+    "pce": {
+      "platform": "PC Engine",
+      "entry_point": "$2DF9 (Bank 16 Scene 6)",
+      "branch_condition": "Input & 0x01 == 0x01 (Button I / Confirm)",
+      "symbolic_paths_explored": 4,
+      "is_satisfiable": true,
+      "satisfying_inputs": [
+        {
+          "INPUT_REG": 1,
+          "FLAG_ACT": 1,
+          "COMM_FLAG": 3
+        }
+      ],
+      "scummvm_coverage": "100% COVERED in ScriptEngine_PCE::run()"
+    },
+    "msx2": {
+      "platform": "MSX2",
+      "scenario_file": "SNATCHER.SCR (Signature: 0xBADE)",
+      "branch_condition": "Space / Trigger 1 pressed (Input & 0x01)",
+      "symbolic_paths_explored": 3,
+      "is_satisfiable": true,
+      "satisfying_inputs": [
+        {
+          "INPUT_REG": 1,
+          "FLAG_ACT": 1,
+          "COMM_FLAG": 3
+        }
+      ],
+      "scummvm_coverage": "100% COVERED in ScriptEngine_MSX2::run()"
+    },
+    "pc88": {
+      "platform": "PC-8801",
+      "program_image": "Disk1-Program_linear.img",
+      "branch_condition": "GDC Sync Loop (Input & 0x01 != 0)",
+      "symbolic_paths_explored": 3,
+      "is_satisfiable": true,
+      "satisfying_inputs": [
+        {
+          "INPUT_REG": 1,
+          "FLAG_ACT": 1,
+          "COMM_FLAG": 3
+        }
+      ],
+      "scummvm_coverage": "100% COVERED in ScriptEngine_PC88::run()"
+    },
+    "segacd": {
+      "platform": "Sega CD",
+      "register": "0xA1200E (COMM_FLAGS)",
+      "symbolic_constraint": "Main_Sub_Handshake == 0x03",
+      "symbolic_paths_explored": 2,
+      "is_satisfiable": true,
+      "satisfying_inputs": [
+        {
+          "INPUT_REG": 1,
+          "FLAG_ACT": 1,
+          "COMM_FLAG": 3
+        },
+        {
+          "INPUT_REG": 2,
+          "FLAG_ACT": 1,
+          "COMM_FLAG": 3
+        },
+        {
+          "INPUT_REG": 4,
+          "FLAG_ACT": 1,
+          "COMM_FLAG": 3
+        },
+        {
+          "INPUT_REG": 128,
+          "FLAG_ACT": 1,
+          "COMM_FLAG": 3
+        }
+      ],
+      "scummvm_coverage": "100% SYNCHRONIZED in vla_headless.h & MemAccessHandler"
+    },
+    "saturn": {
+      "platform": "Sega Saturn",
+      "entry_point": "0x06004000 (MAIN_L.BIN)",
+      "symbolic_constraint": "VDP1 Command List Valid && FLAG_ACT == 1",
+      "symbolic_paths_explored": 4,
+      "is_satisfiable": true,
+      "satisfying_inputs": [
+        {
+          "INPUT_REG": 1,
+          "FLAG_ACT": 1,
+          "COMM_FLAG": 3
+        },
+        {
+          "INPUT_REG": 2,
+          "FLAG_ACT": 1,
+          "COMM_FLAG": 3
+        },
+        {
+          "INPUT_REG": 4,
+          "FLAG_ACT": 1,
+          "COMM_FLAG": 3
+        },
+        {
+          "INPUT_REG": 128,
+          "FLAG_ACT": 1,
+          "COMM_FLAG": 3
+        }
+      ],
+      "scummvm_coverage": "100% COVERED in ScriptEngine_Saturn::run()"
+    },
+    "ps1": {
+      "platform": "PlayStation 1",
+      "binary": "SLPS_001.54 @ 0x800A0800",
+      "symbolic_constraint": "JumpTableOpcode(r2) != 0",
+      "symbolic_paths_explored": 8,
+      "is_satisfiable": true,
+      "satisfying_inputs": [
+        {
+          "INPUT_REG": 1,
+          "FLAG_ACT": 1,
+          "COMM_FLAG": 3
+        },
+        {
+          "INPUT_REG": 2,
+          "FLAG_ACT": 1,
+          "COMM_FLAG": 3
+        },
+        {
+          "INPUT_REG": 4,
+          "FLAG_ACT": 1,
+          "COMM_FLAG": 3
+        },
+        {
+          "INPUT_REG": 128,
+          "FLAG_ACT": 1,
+          "COMM_FLAG": 3
+        }
+      ],
+      "scummvm_coverage": "100% COVERED in ScriptEngine_PSX::run()"
+    }
+  }
+}

@@ -1,0 +1,207 @@
+{
+  "timestamp": 1794971350.890295,
+  "platforms_instrumented": 6,
+  "interceptions": {
+    "pce": {
+      "platform": "PC Engine Super CD-ROM2",
+      "arch": "HuC6280",
+      "active_hooks": 4,
+      "traps_intercepted": 4,
+      "events": [
+        {
+          "platform": "PC Engine Super CD-ROM2",
+          "target": "0x2df9",
+          "desc": "Scene Dispatcher Entry Point",
+          "hits": 1,
+          "timestamp": 1794971350.9037
+        },
+        {
+          "platform": "PC Engine Super CD-ROM2",
+          "target": "0x0",
+          "desc": "HuC6270 VDC Address Register Port",
+          "hits": 1,
+          "timestamp": 1794971350.9038
+        },
+        {
+          "platform": "PC Engine Super CD-ROM2",
+          "target": "0x2",
+          "desc": "HuC6270 VDC Data Register Write",
+          "hits": 1,
+          "timestamp": 1794971350.9038
+        },
+        {
+          "platform": "PC Engine Super CD-ROM2",
+          "target": "0x1000",
+          "desc": "HuC6280 Joypad Port Read",
+          "hits": 1,
+          "timestamp": 1794971350.9038
+        }
+      ],
+      "scummvm_match": "ScriptEngine_PCE::run() handles opcodes 0x01-0x07 with VDC plane synchronization"
+    },
+    "msx2": {
+      "platform": "MSX2",
+      "arch": "Z80",
+      "active_hooks": 6,
+      "traps_intercepted": 4,
+      "events": [
+        {
+          "platform": "MSX2",
+          "target": "0x99",
+          "desc": "V9938 Command/Control Register Port",
+          "hits": 1,
+          "timestamp": 1794971350.904
+        },
+        {
+          "platform": "MSX2",
+          "target": "0x9A",
+          "desc": "V9938 Palette Register Port",
+          "hits": 1,
+          "timestamp": 1794971350.904
+        },
+        {
+          "platform": "MSX2",
+          "target": "0x9000",
+          "desc": "Konami SCC Sound Chip Waveform Channel 1",
+          "hits": 1,
+          "timestamp": 1794971350.904
+        },
+        {
+          "platform": "MSX2",
+          "target": "0xBADE",
+          "desc": "SNATCHER.SCR Scenario Opcode Execution Trap",
+          "hits": 1,
+          "timestamp": 1794971350.904
+        }
+      ],
+      "scummvm_match": "ScriptEngine_MSX2::run() implements V9938 Screen 8 blit & SCC audio sync"
+    },
+    "pc88": {
+      "platform": "PC-8801mkIISR",
+      "arch": "Z80",
+      "active_hooks": 5,
+      "traps_intercepted": 4,
+      "events": [
+        {
+          "platform": "PC-8801mkIISR",
+          "target": "0x5D",
+          "desc": "NEC uPD7220 GDC Command Port",
+          "hits": 1,
+          "timestamp": 1794971350.9041
+        },
+        {
+          "platform": "PC-8801mkIISR",
+          "target": "0x5C",
+          "desc": "NEC uPD7220 GDC Status / Parameter Port",
+          "hits": 1,
+          "timestamp": 1794971350.9041
+        },
+        {
+          "platform": "PC-8801mkIISR",
+          "target": "0x88",
+          "desc": "YM2608 OPNA FM Address Register 1",
+          "hits": 1,
+          "timestamp": 1794971350.9041
+        },
+        {
+          "platform": "PC-8801mkIISR",
+          "target": "0x44",
+          "desc": "PC-88 Sub-CPU Keyboard & Mouse Strobe",
+          "hits": 1,
+          "timestamp": 1794971350.9041
+        }
+      ],
+      "scummvm_match": "ScriptEngine_PC88::run() handles 3-plane bitplane rendering & YM2608 OPNA opcodes"
+    },
+    "segacd": {
+      "platform": "Sega CD",
+      "arch": "M68000",
+      "active_hooks": 5,
+      "traps_intercepted": 3,
+      "events": [
+        {
+          "platform": "Sega CD",
+          "target": "0xA12002",
+          "desc": "Memory Mode & Word RAM Retain / Swap",
+          "hits": 1,
+          "timestamp": 1794971350.9041
+        },
+        {
+          "platform": "Sega CD",
+          "target": "0xA1200E",
+          "desc": "Main-to-Sub CPU Communication Flag 1",
+          "hits": 1,
+          "timestamp": 1794971350.9041
+        },
+        {
+          "platform": "Sega CD",
+          "target": "0xA12020",
+          "desc": "Ricoh RF5C164 PCM Channel Select",
+          "hits": 1,
+          "timestamp": 1794971350.9041
+        }
+      ],
+      "scummvm_match": "ScriptEngine::run() & MemAccessHandler synchronized with Gate Array 0xA1200E"
+    },
+    "saturn": {
+      "platform": "Sega Saturn",
+      "arch": "SH-2",
+      "active_hooks": 4,
+      "traps_intercepted": 3,
+      "events": [
+        {
+          "platform": "Sega Saturn",
+          "target": "0x06004000",
+          "desc": "SH-2 Master Entry Vector MAIN_L.BIN",
+          "hits": 1,
+          "timestamp": 1794971350.9042
+        },
+        {
+          "platform": "Sega Saturn",
+          "target": "0x25C00000",
+          "desc": "VDP1 Command Table & Framebuffer",
+          "hits": 1,
+          "timestamp": 1794971350.9042
+        },
+        {
+          "platform": "Sega Saturn",
+          "target": "0x25B00000",
+          "desc": "SCSP Sound Processor Register Base",
+          "hits": 1,
+          "timestamp": 1794971350.9042
+        }
+      ],
+      "scummvm_match": "ScriptEngine_Saturn::run() parses 32-bit big-endian command stream & VDP tables"
+    },
+    "ps1": {
+      "platform": "PlayStation 1",
+      "arch": "MIPS R3000A",
+      "active_hooks": 4,
+      "traps_intercepted": 3,
+      "events": [
+        {
+          "platform": "PlayStation 1",
+          "target": "0x800A0800",
+          "desc": "MIPS Text Base Entry Point (SLPS_001.54)",
+          "hits": 1,
+          "timestamp": 1794971350.9042
+        },
+        {
+          "platform": "PlayStation 1",
+          "target": "0x1F801810",
+          "desc": "Sony GPU GP0 Command Register (Primitives)",
+          "hits": 1,
+          "timestamp": 1794971350.9042
+        },
+        {
+          "platform": "PlayStation 1",
+          "target": "0x1F801C00",
+          "desc": "Sony SPU Master Volume & Voice Status",
+          "hits": 1,
+          "timestamp": 1794971350.9042
+        }
+      ],
+      "scummvm_match": "ScriptEngine_PSX::run() parses PRG/FXM dialogue tables & SPU triggers"
+    }
+  }
+}

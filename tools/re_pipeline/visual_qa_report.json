@@ -8,7 +8,7 @@
     "black_ratio": 0.003,
     "anomalies": [],
     "spec_match": true,
-    "llm_review": "This rendering result matches Sega CD's Genesis VDP 64-color tilemap with Sub-CPU ASIC Word RAM scaling (320x224). The measured dimensions are 320x224, and the color depth is 82 colors. The brightness is 0.89, which is within the acceptable range for Sega CD hardware standards. There are no anomalies detected in this rendering result."
+    "llm_review": "This rendering result matches Sega CD's Genesis VDP 64-color tilemap with Sub-CPU ASIC Word RAM scaling (320x224). The measured dimensions are 320x224, with 82 colors, and the brightness is 0.89. There are no anomalies detected."
   },
   "PC Engine": {
     "status": "PASS",
@@ -19,7 +19,7 @@
     "black_ratio": 0.597,
     "anomalies": [],
     "spec_match": true,
-    "llm_review": "This rendering result matches authentic console hardware standards. The HuC6270 VDC planar tiles and HuC6260 VCE 9-bit master palette (256x224) are correctly identified and measured, with a brightness of 0.23. The anomalies detected are none."
+    "llm_review": "This rendering result matches authentic console hardware standards. The HuC6270 VDC planar tiles and HuC6260 VCE 9-bit master palette (256x224) are both recognized and supported by the console. The brightness is set to 0.23, which is within the acceptable range for a console. The anomalies detected are none, indicating that the rendering is consistent with the console's hardware specifications."
   },
   "PlayStation 1": {
     "status": "PASS",
@@ -30,7 +30,7 @@
     "black_ratio": 0.003,
     "anomalies": [],
     "spec_match": true,
-    "llm_review": "This rendering result matches authentic console hardware standards. The console's GPU is a Sony GPU 16-bit direct BGR555 frame with a drop-shadow text, and the measured resolution is 320x240, with 89 colors and a brightness of 0.89. There are no anomalies detected."
+    "llm_review": "This rendering result matches authentic console hardware standards. The console's GPU is a Sony GPU 16-bit direct BGR555 frame with a drop-shadow text (320x240). The measured color depth is 89 colors, and the brightness is 0.89. There are no anomalies detected."
   },
   "Sega Saturn": {
     "status": "PASS",
@@ -52,7 +52,7 @@
     "black_ratio": 0.599,
     "anomalies": [],
     "spec_match": true,
-    "llm_review": "This rendering result matches authentic console hardware standards. The screen is a 256x212 bitmap with 21 colors, and the brightness is 0.225."
+    "llm_review": "This rendering result matches authentic console hardware standards. The screen resolution is 256x212, which is a common resolution for Yamaha V9938 screens. The brightness is 0.225, which is a common brightness level for Yamaha V9938 screens. There are no anomalies detected in this rendering result."
   },
   "PC-8801": {
     "status": "PASS",
@@ -63,6 +63,6 @@
     "black_ratio": 0.606,
     "anomalies": [],
     "spec_match": true,
-    "llm_review": "This rendering result matches the authentic console hardware standards for the NEC uPD7220 3-plane digital RGB (B, R, G) planar bitmap (640x400). The measurements are consistent with the console's specifications, including the number of planes, color depth, and brightness. There are no anomalies detected."
+    "llm_review": "This rendering result matches the authentic console hardware standards for the NEC uPD7220 3-plane digital RGB (B, R, G) planar bitmap (640x400). The measurements are consistent with the console's specifications, including the number of planes, color depth, and brightness. There are no anomalies detected in the rendering."
   }
 }

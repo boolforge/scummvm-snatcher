@@ -478,7 +478,46 @@ def run_multiplatform_harness():
                 log("MULTI-HARNESS", line.strip())
 
 # =============================================================================
-# 13. RECURSIVE INTROSPECTION & SELF-IMPROVEMENT
+# 13. ADVANCED RETRO INSTRUMENTER (PCE / MSX2 / PC88 / PS1 / SATURN / SEGA CD)
+# =============================================================================
+def run_retro_instrumenter():
+    log_banner("CYCLE PHASE 13: ADVANCED RETRO INSTRUMENTER (PCE / MSX2 / PC88)")
+    instr_script = os.path.join(TOOLS_DIR, "snatcher_retro_instrumenter.py")
+    if os.path.exists(instr_script):
+        cmd = [sys.executable, instr_script]
+        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        for line in proc.stdout.split("\n"):
+            if "[+]" in line:
+                log("RETRO-INSTR", line.strip())
+
+# =============================================================================
+# 14. UNIVERSAL SYMBOLIC EXECUTION & MULTI-ARCH TAINT TRACER
+# =============================================================================
+def run_symbolic_tracer():
+    log_banner("CYCLE PHASE 14: UNIVERSAL SYMBOLIC TAINT & BRANCH SOLVER")
+    tracer_script = os.path.join(TOOLS_DIR, "snatcher_universal_symbolic_tracer.py")
+    if os.path.exists(tracer_script):
+        cmd = [sys.executable, tracer_script]
+        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        for line in proc.stdout.split("\n"):
+            if "[+]" in line:
+                log("SYM-SOLVER", line.strip())
+
+# =============================================================================
+# 15. UNIVERSAL RETRO-FRIDA DYNAMIC MEMORY HOOK INTERCEPTOR
+# =============================================================================
+def run_retro_hooker():
+    log_banner("CYCLE PHASE 15: UNIVERSAL RETRO-FRIDA DYNAMIC MEMORY HOOK INTERCEPTOR")
+    hooker_script = os.path.join(TOOLS_DIR, "snatcher_retro_hooker.py")
+    if os.path.exists(hooker_script):
+        cmd = [sys.executable, hooker_script]
+        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        for line in proc.stdout.split("\n"):
+            if "[+]" in line:
+                log("RETRO-FRIDA", line.strip())
+
+# =============================================================================
+# 16. RECURSIVE INTROSPECTION & SELF-IMPROVEMENT
 # =============================================================================
 def perform_cycle(state):
     cycle_start = time.time()
@@ -496,6 +535,9 @@ def perform_cycle(state):
     run_visual_qa()
     run_weaponized_debugger()
     run_multiplatform_harness()
+    run_retro_instrumenter()
+    run_symbolic_tracer()
+    run_retro_hooker()
 
     duration = time.time() - cycle_start
     state.record_cycle(duration, build_ok)

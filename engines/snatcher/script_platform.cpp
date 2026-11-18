@@ -30,6 +30,7 @@
 #include "snatcher/generated/msx2_v9938_palette_table.h"
 #include "snatcher/generated/msx2_recovered_opcodes.h"
 #include "snatcher/generated/ps1_angr_functions.h"
+#include "snatcher/generated/retro_frida_hooks.h"
 #include "snatcher/resource.h"
 #include "snatcher/snatcher.h"
 #include "snatcher/memory.h"
@@ -77,7 +78,10 @@ void ScriptEngine_PSX::run(Script &script) {
 		if (sceneOffset + 2 <= _curSceneSize) {
 			uint16 opcode = READ_LE_UINT16(_curSceneData + sceneOffset);
 			switch (opcode & 0x07) {
-			case 0x01: // Dialogue text frame display
+			case 0x00: // NOP / Frame step
+				_scriptPc += 2;
+				break;
+			case 0x01: // Dialogue text frame display & verbs
 				if (_ui)
 					_ui->drawVerbs();
 				_scriptPc += 2;
@@ -90,6 +94,32 @@ void ScriptEngine_PSX::run(Script &script) {
 			case 0x03: // Script state variable update
 				if (_mem)
 					_mem->writeWord(0x0102, 1);
+				_scriptPc += 2;
+				break;
+			case 0x04: // SPU Sound / Audio Cue Trigger
+				if (_mem)
+					_mem->writeWord(0x0104, (opcode >> 8) & 0xFF);
+				_scriptPc += 2;
+				break;
+			case 0x05: // Interactive dialogue choice branch
+				if (_mem) {
+					uint16 choice = _mem->readWord(0x0106);
+					if (choice > 0 && (sceneOffset + choice * 4 + 2) <= _curSceneSize)
+						_scriptPc = (sceneOffset + choice * 4) % (entryCount * 2);
+					else
+						_scriptPc += 2;
+				} else {
+					_scriptPc += 2;
+				}
+				break;
+			case 0x06: // Investigation item query
+				if (_mem)
+					_mem->writeWord(0x0108, 0x0001);
+				_scriptPc += 2;
+				break;
+			case 0x07: // Screen fade / wipe effect
+				if (_mem)
+					_mem->writeWord(0x010A, 0x00FF);
 				_scriptPc += 2;
 				break;
 			default:
@@ -144,17 +174,38 @@ void ScriptEngine_Saturn::run(Script &script) {
 		uint32 cmd = READ_BE_UINT32(_scenarioData + _scenarioPc);
 		uint16 op = (cmd >> 16) & 0xFFFF;
 		switch (op & 0x07) {
-		case 0x01: // VDP1 Sprite Display
+		case 0x00: // NOP / Frame step
+			break;
+		case 0x01: // VDP1 Sprite Display & Verbs
 			if (_ui)
 				_ui->drawVerbs();
 			break;
-		case 0x02: // VDP2 Background Scroll
+		case 0x02: // VDP2 Background Scroll & Plane
 			if (_mem)
 				_mem->writeWord(0x0200, (uint16)(cmd & 0xFFFF));
 			break;
 		case 0x03: // Scenario State Update
 			if (_mem)
 				_mem->writeWord(0x0202, 1);
+			break;
+		case 0x04: // SCSP DSP Stream / CD-DA audio trigger
+			if (_mem)
+				_mem->writeWord(0x0204, (uint16)((cmd >> 8) & 0xFF));
+			break;
+		case 0x05: // Choice branching / Jump
+			if (_mem) {
+				uint16 choice = _mem->readWord(0x0206);
+				if (choice > 0 && (uint32)(_scenarioPc + choice * 8 + 4) <= _scenarioSize)
+					_scenarioPc = (_scenarioPc + choice * 8) % _scenarioSize;
+			}
+			break;
+		case 0x06: // Item investigation flag
+			if (_mem)
+				_mem->writeWord(0x0208, 0x0001);
+			break;
+		case 0x07: // VDP2 Palette fade out/in
+			if (_mem)
+				_mem->writeWord(0x020A, 0x00FF);
 			break;
 		default:
 			break;
@@ -202,6 +253,9 @@ void ScriptEngine_PCE::run(Script &script) {
 	if ((uint32)(_bank16Pc + 2) <= _bank16Size) {
 		uint16 opcode = READ_LE_UINT16(_bank16Data + _bank16Pc);
 		switch (opcode & 0x07) {
+		case 0x00: // NOP / VDC Sync
+			_bank16Pc += 2;
+			break;
 		case kPCEOpcodeTextPrompt: // Prompt & Text
 			if (_ui)
 				_ui->drawVerbs();
@@ -215,6 +269,32 @@ void ScriptEngine_PCE::run(Script &script) {
 		case kPCEOpcodeStateUpdate: // Flag / Game State Update
 			if (_mem)
 				_mem->writeWord(0x0302, 1);
+			_bank16Pc += 2;
+			break;
+		case 0x04: // HuC6280 PSG Sound FX Trigger
+			if (_mem)
+				_mem->writeWord(0x0304, (opcode >> 8) & 0xFF);
+			_bank16Pc += 2;
+			break;
+		case 0x05: // PCE Dialogue choice branch
+			if (_mem) {
+				uint16 choice = _mem->readWord(0x0306);
+				if (choice > 0 && (uint32)(_bank16Pc + choice * 4 + 2) <= _bank16Size)
+					_bank16Pc = (_bank16Pc + choice * 4) % _bank16Size;
+				else
+					_bank16Pc += 2;
+			} else {
+				_bank16Pc += 2;
+			}
+			break;
+		case 0x06: // Clue discovery flag
+			if (_mem)
+				_mem->writeWord(0x0308, 0x0001);
+			_bank16Pc += 2;
+			break;
+		case 0x07: // VDC Palette Fade
+			if (_mem)
+				_mem->writeWord(0x030A, 0x00FF);
 			_bank16Pc += 2;
 			break;
 		default:
@@ -267,6 +347,9 @@ void ScriptEngine_MSX2::run(Script &script) {
 	if ((uint32)(_scrPc + 2) <= _scrSize) {
 		uint16 opcode = READ_LE_UINT16(_scrData + _scrPc);
 		switch (opcode & 0x07) {
+		case 0x00: // NOP / Screen 8 Sync
+			_scrPc += 2;
+			break;
 		case kMSX2OpcodeDialogue: // MSX Dialogue & Kanji Subtitle
 			if (_ui)
 				_ui->drawVerbs();
@@ -280,6 +363,32 @@ void ScriptEngine_MSX2::run(Script &script) {
 		case kMSX2OpcodeSccSound: // SCC Sound Event / Scenario Flag
 			if (_mem)
 				_mem->writeWord(0x0402, 1);
+			_scrPc += 2;
+			break;
+		case 0x04: // PSG Sound Trigger
+			if (_mem)
+				_mem->writeWord(0x0404, (opcode >> 8) & 0xFF);
+			_scrPc += 2;
+			break;
+		case 0x05: // MSX2 Interactive choice jump
+			if (_mem) {
+				uint16 choice = _mem->readWord(0x0406);
+				if (choice > 0 && (uint32)(_scrPc + choice * 4 + 2) <= _scrSize)
+					_scrPc = (_scrPc + choice * 4) % _scrSize;
+				else
+					_scrPc += 2;
+			} else {
+				_scrPc += 2;
+			}
+			break;
+		case 0x06: // Investigation flag set
+			if (_mem)
+				_mem->writeWord(0x0408, 0x0001);
+			_scrPc += 2;
+			break;
+		case 0x07: // V9938 Palette Fade
+			if (_mem)
+				_mem->writeWord(0x040A, 0x00FF);
 			_scrPc += 2;
 			break;
 		default:
@@ -328,6 +437,9 @@ void ScriptEngine_PC88::run(Script &script) {
 	if ((uint32)(_diskPc + 2) <= _diskSize) {
 		uint16 opcode = READ_LE_UINT16(_diskData + _diskPc);
 		switch (opcode & 0x07) {
+		case 0x00: // NOP / GDC sync
+			_diskPc += 2;
+			break;
 		case kPC88OpcodeTextPrompt: // Text prompt
 			if (_ui)
 				_ui->drawVerbs();
@@ -341,6 +453,32 @@ void ScriptEngine_PC88::run(Script &script) {
 		case kPC88OpcodeOpnaSound: // OPNA YM2608 Sound / Game State
 			if (_mem)
 				_mem->writeWord(0x0502, 1);
+			_diskPc += 2;
+			break;
+		case 0x04: // OPNA FM Chime
+			if (_mem)
+				_mem->writeWord(0x0504, (opcode >> 8) & 0xFF);
+			_diskPc += 2;
+			break;
+		case 0x05: // PC88 Dialogue branch choice
+			if (_mem) {
+				uint16 choice = _mem->readWord(0x0506);
+				if (choice > 0 && (uint32)(_diskPc + choice * 4 + 2) <= _diskSize)
+					_diskPc = (_diskPc + choice * 4) % _diskSize;
+				else
+					_diskPc += 2;
+			} else {
+				_diskPc += 2;
+			}
+			break;
+		case 0x06: // Item inventory state
+			if (_mem)
+				_mem->writeWord(0x0508, 0x0001);
+			_diskPc += 2;
+			break;
+		case 0x07: // Screen clear / palette effect
+			if (_mem)
+				_mem->writeWord(0x050A, 0x00FF);
 			_diskPc += 2;
 			break;
 		default:
